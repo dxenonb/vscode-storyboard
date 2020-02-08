@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 interface BoardViewResources {
-	script: vscode.Uri,
+	scriptMain: vscode.Uri,
+	scriptCanvas: vscode.Uri,
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -19,8 +20,11 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 
 		const paths = {
-			script: panel.webview.asWebviewUri(vscode.Uri.file(
+			scriptMain: panel.webview.asWebviewUri(vscode.Uri.file(
 				path.join(extensionPath, 'media', 'main.js'),
+			)),
+			scriptCanvas: panel.webview.asWebviewUri(vscode.Uri.file(
+				path.join(extensionPath, 'media', 'canvas.js'),
 			)),
 		};
 
@@ -54,8 +58,9 @@ function getWebviewContent(webview: vscode.Webview, paths: BoardViewResources) {
 			<title>Sequence Graph Board</title>
 		</head>
 		<body>
-			<p>It begins!</p>
-			<script src="${paths.script}">
+			<canvas width="800" height="600" id="graph"></canvas>
+			<script src="${paths.scriptCanvas}"></script>
+			<script src="${paths.scriptMain}"></script>
 		</body>
 		</html>
 	`;

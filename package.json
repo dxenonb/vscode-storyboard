@@ -23,9 +23,10 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"lint": "eslint src --ext ts",
-		"watch": "tsc -watch -p ./",
+		"compile": "npm run compile-src && npm run compile-web",
+		"compile-src": "tsc -p ./src",
+		"compile-web": "tsc -p ./web",
+		"lint": "eslint src web --ext ts",
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js"
 	},
