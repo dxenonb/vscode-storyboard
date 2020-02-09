@@ -23,9 +23,10 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "npm run compile-src && npm run compile-web",
+		"compile": "npm run compile-src && npm run compile-web && npm run compile-web-styles",
 		"compile-src": "tsc -p ./src",
 		"compile-web": "tsc -p ./web",
+		"compile-web-styles": "sass ./web-styles/:./media/styles/",
 		"lint": "eslint src web --ext ts",
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js"
@@ -35,11 +36,12 @@
 		"@types/mocha": "^7.0.1",
 		"@types/node": "^12.11.7",
 		"@types/vscode": "^1.42.0",
-		"eslint": "^6.8.0",
-		"@typescript-eslint/parser": "^2.18.0",
 		"@typescript-eslint/eslint-plugin": "^2.18.0",
+		"@typescript-eslint/parser": "^2.18.0",
+		"eslint": "^6.8.0",
 		"glob": "^7.1.6",
 		"mocha": "^7.0.1",
+		"sass": "^1.25.0",
 		"typescript": "^3.7.5",
 		"vscode-test": "^1.3.0"
 	}

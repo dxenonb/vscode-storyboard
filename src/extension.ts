@@ -4,6 +4,7 @@ import * as path from 'path';
 interface BoardViewResources {
 	scriptMain: vscode.Uri,
 	scriptCanvas: vscode.Uri,
+	style: vscode.Uri,
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -19,13 +20,16 @@ export function activate(context: vscode.ExtensionContext) {
 			},
 		);
 
+		const mediaUri = (mediaPath: string[]) => {
+			const paths = [extensionPath, 'media', ...mediaPath];
+			const uri = vscode.Uri.file(path.join.apply(path, paths));
+			return panel.webview.asWebviewUri(uri);
+		};
+
 		const paths = {
-			scriptMain: panel.webview.asWebviewUri(vscode.Uri.file(
-				path.join(extensionPath, 'media', 'main.js'),
-			)),
-			scriptCanvas: panel.webview.asWebviewUri(vscode.Uri.file(
-				path.join(extensionPath, 'media', 'canvas.js'),
-			)),
+			scriptMain: mediaUri(['main.js']),
+			scriptCanvas: mediaUri(['canvas.js']),
+			style: mediaUri(['styles', 'board.css']),
 		};
 
 		panel.webview.html = getWebviewContent(panel.webview, paths);
@@ -55,6 +59,7 @@ function getWebviewContent(webview: vscode.Webview, paths: BoardViewResources) {
 				"
 			/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<link rel="stylesheet" type="text/css" href="${paths.style}">
 			<title>Sequence Graph Board</title>
 		</head>
 		<body>
