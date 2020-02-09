@@ -54,12 +54,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     z-index: 1;
 
     &.active {
-        background: var(--vscode-tab-hoverBackground);
-        color: var(--vscode-tab-activeForeground);
-    }
-
-    &:hover {
-        background: var(--vscode-tab-hoverBackground);
+        outline: 1px solid rgba(179, 116, 87, 0.4);
     }
 
     transition: background-color ease-in-out 0.1s;
@@ -75,7 +70,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
 
     &::after {
         content: '';
-        
+
         position: absolute;
         top: 0;
         left: 0;
