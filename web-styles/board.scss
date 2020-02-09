@@ -1,7 +1,123 @@
-body {
+* {
     margin: 0;
     padding: 0;
+    font-family: "Source Sans Pro", "Fira Sans", "Open Sans", Arial, Helvetica, sans-serif;
+    box-sizing: border-box;
+}
+
+body {
     overflow: hidden;
 
     background: var(--vscode-editor-background);
+}
+
+canvas {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+
+    background: none;
+
+    z-index: 0;
+}
+
+$std-padding: 4px;
+$std-border-radius: 2px;
+
+.node-root {
+    position: absolute;
+
+    top: 10px;
+    left: 10px;
+
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+
+    background: var(--vscode-editorGroupHeader-tabsBackground);
+    border-radius: $std-border-radius;
+    border: 1px solid var(--vscode-tab-border);
+    color: var(--vscode-editor-foreground);
+
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+
+    overflow: hidden;
+    z-index: 1;
+
+    &.active {
+        background: var(--vscode-tab-hoverBackground);
+        color: var(--vscode-tab-activeForeground);
+    }
+
+    &:hover {
+        background: var(--vscode-tab-hoverBackground);
+    }
+
+    transition: background ease-in-out 0.1s;
+
+    @mixin nodeEdge($top, $left) {
+        position: absolute;
+        top: $top;
+        left: $left;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+
+        transform: translate(-50%, -50%);
+
+        color: rgb(19, 86, 173);
+
+        cursor: pointer;
+    }
+
+    .node-socket:first-child {
+        @include nodeEdge(50%, 0%);
+    }
+
+    .node-socket:last-child {
+        @include nodeEdge(50%, 100%);
+    }
+}
+
+.node-color-bar {
+    height: 4px;
+    flex: 0 0 auto;
+    background: rgb(201, 26, 20);
+    cursor: pointer;
+}
+
+.node-header {
+    flex: 0 0 16px;
+    font-size: 14px;
+    font-weight: bold;
+    margin: $std-padding $std-padding * 2;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    cursor: pointer;
+}
+
+.node-content {
+    flex: 1 1 64px;
+    resize: none;
+
+    margin: $std-padding;
+    margin-top: 0;
+    padding: $std-padding / 2;
+
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+
+    border: 1px solid var(--vscode-contrastBorder, rgba(0, 0, 0, 0));
+    border-radius: $std-border-radius;
+
+    &:focus {
+        outline: none;
+        border-color: var(--vscode-contrastActiveBorder);
+    }
 }
