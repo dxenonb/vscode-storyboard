@@ -23,8 +23,12 @@ canvas {
     z-index: 0;
 }
 
-$std-padding: 4px;
+$std-padding: 8px;
 $std-border-radius: 2px;
+
+$node-border: var(--vscode-tab-border);
+$socket-color: var(--vscode-gitDecoration-addedResourceForeground, rgb(17, 73, 146));
+$default-color-bar: rgba(0, 0, 0, 0.5);
 
 .node-root {
     position: absolute;
@@ -39,10 +43,13 @@ $std-border-radius: 2px;
 
     background: var(--vscode-editorGroupHeader-tabsBackground);
     border-radius: $std-border-radius;
-    border: 1px solid var(--vscode-tab-border);
+    border: 1px solid $node-border;
     color: var(--vscode-editor-foreground);
 
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+
+    user-select: none;
+    cursor: pointer;
 
     z-index: 1;
 
@@ -55,29 +62,62 @@ $std-border-radius: 2px;
         background: var(--vscode-tab-hoverBackground);
     }
 
-    transition: background ease-in-out 0.1s;
+    transition: background-color ease-in-out 0.1s;
+}
 
-    @mixin nodeEdge($top, $left) {
-        position: absolute;
-        top: $top;
-        left: $left;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
+.node-socket {
+    position: absolute;
+    top: 55%;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
 
+    background: $socket-color;
+    border: 1px solid $node-border;
+
+    cursor: pointer;
+
+    &:first-child {
         transform: translate(-50%, -50%);
-
-        background: rgb(19, 86, 173);
-
-        cursor: pointer;
+        left: 0%;
     }
 
-    .node-socket:first-child {
-        @include nodeEdge(50%, 0%);
+    &:last-child {
+        transform: translate(50%, -50%);
+        right: 0%;
     }
 
-    .node-socket:last-child {
-        @include nodeEdge(50%, 100%);
+    $min-ripple: 2px;
+    $max-ripple: 5px;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: -$min-ripple;
+        left: -$min-ripple;
+        right: -$min-ripple;
+        bottom: -$min-ripple;
+
+        pointer-events: none;
+
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.0);
+
+        transition:
+            top ease-in-out 0.1s,
+            left ease-in-out 0.1s,
+            right ease-in-out 0.1s,
+            bottom ease-in-out 0.1s,
+            background-color ease-in-out 0.1s;
+    }
+
+    &:hover::after {
+        top: -$max-ripple;
+        left: -$max-ripple;
+        right: -$max-ripple;
+        bottom: -$max-ripple;
+
+        background: rgba(0, 0, 0, 0.5);
     }
 }
 
@@ -85,7 +125,7 @@ $std-border-radius: 2px;
     height: 4px;
     flex: 0 0 auto;
     border-radius: 2px;
-    background: rgb(201, 26, 20);
+    background-color: $default-color-bar;
     cursor: pointer;
 }
 
@@ -93,7 +133,7 @@ $std-border-radius: 2px;
     flex: 0 0 16px;
     font-size: 14px;
     font-weight: bold;
-    margin: $std-padding $std-padding * 2;
+    margin: $std-padding $std-padding;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -108,7 +148,7 @@ $std-border-radius: 2px;
 
     margin: $std-padding;
     margin-top: 0;
-    padding: $std-padding / 2;
+    padding: $std-padding / 3;
 
     background: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
