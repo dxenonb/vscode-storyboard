@@ -3,6 +3,9 @@ function createNode(id: string) {
     root.id = id;
     root.className = 'node-root';
 
+    const leftSocket = document.createElement('div');
+    leftSocket.className = 'node-socket';
+
     const colorBar = document.createElement('div');
     colorBar.className = 'node-color-bar';
 
@@ -12,9 +15,14 @@ function createNode(id: string) {
     const content = document.createElement('textarea');
     content.className = 'node-content';
 
+    const rightSocket = document.createElement('div');
+    rightSocket.className = 'node-socket';
+
+    root.appendChild(leftSocket);
     root.appendChild(colorBar);
     root.appendChild(header);
     root.appendChild(content);
+    root.appendChild(rightSocket);
 
     return root;
 }
