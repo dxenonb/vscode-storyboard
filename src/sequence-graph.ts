@@ -26,12 +26,20 @@ export default class SequenceGraph implements Disposable {
         this.resources = {
             scriptMain: this.mediaUri(['main.js']),
             scriptCanvas: this.mediaUri(['canvas.js']),
+            scriptNode: this.mediaUri(['node.js']),
             style: this.mediaUri(['styles', 'board.css']),
         };
 
         this.localResourceRoots = [Uri.file(path.join(context.extensionPath, 'media'))];
 
         this.disposables = [];
+
+        this.disposables.push(
+            vscode.window.registerWebviewPanelSerializer(
+                BOARD_WEBVIEW_ID,
+                new WebviewSerializer(this),
+            ),
+        );
         this.registerCommands();
         this.registerListeners();
     }
@@ -77,6 +85,12 @@ export default class SequenceGraph implements Disposable {
         return board;
     }
 
+    async restoreBoardEditor(panel: vscode.WebviewPanel, state: any) {
+        // TODO: incorporate state
+        const editor = new BoardEditor(panel, this.resources);
+        return editor;
+    }
+
     private registerCommands() {
         this.disposables.push(
             vscode.commands.registerCommand(Commands.CreateBoard, () => {
@@ -118,6 +132,19 @@ export default class SequenceGraph implements Disposable {
             item.dispose();
         }
         this.disposables = [];
+    }
+}
+
+class WebviewSerializer implements vscode.WebviewPanelSerializer {
+    private sequenceGraph: SequenceGraph;
+
+    constructor(sequenceGraph: SequenceGraph) {
+        this.sequenceGraph = sequenceGraph;
+    }
+
+    deserializeWebviewPanel(panel: vscode.WebviewPanel, state: any): Thenable<void> {
+        return this.sequenceGraph.restoreBoardEditor(panel, state)
+            .then(() => { });
     }
 }
 

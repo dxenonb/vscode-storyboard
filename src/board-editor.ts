@@ -2,7 +2,8 @@ import { WebviewPanel, Uri, Webview } from "vscode";
 
 export interface BoardViewResources {
 	scriptMain: Uri,
-	scriptCanvas: Uri,
+    scriptCanvas: Uri,
+    scriptNode: Uri,
 	style: Uri,
 }
 
@@ -13,7 +14,7 @@ export class BoardEditor {
 
     public constructor(
         panel: WebviewPanel,
-        { scriptMain, scriptCanvas, style }: BoardViewResources,
+        { scriptMain, scriptCanvas, scriptNode, style }: BoardViewResources,
     ) {
         this.panel = panel;
 
@@ -21,6 +22,7 @@ export class BoardEditor {
             scriptMain: panel.webview.asWebviewUri(scriptMain),
             scriptCanvas: panel.webview.asWebviewUri(scriptCanvas),
             style: panel.webview.asWebviewUri(style),
+            scriptNode: panel.webview.asWebviewUri(scriptNode),
         };
 
         panel.webview.html = getWebviewContent(panel.webview, this.resources);
@@ -56,8 +58,10 @@ function getWebviewContent(webview: Webview, paths: BoardViewResources) {
 			<title>Sequence Graph Board</title>
 		</head>
 		<body>
-			<canvas width="800" height="600" id="graph"></canvas>
-			<script src="${paths.scriptCanvas}"></script>
+            <canvas width="400" height="400" id="graph"></canvas>
+            <div id="node-host"></div>
+            <script src="${paths.scriptCanvas}"></script>
+            <script src="${paths.scriptNode}"></script>
 			<script src="${paths.scriptMain}"></script>
 		</body>
 		</html>
