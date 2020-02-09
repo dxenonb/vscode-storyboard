@@ -1,14 +1,42 @@
 const send = () => { };
 
-const nodeHost = document.getElementById('node-host');
-const state = initializeCanvas('graph', { send }, { send });
+type NodeRef = string;
 
-if (state) {
-    redraw(state);
+class BoardManager {
+    private nodeHost: HTMLElement;
+    private canvasState: GraphCanvasState;
 
-    const el = createNode(nodeRefId('1'));
-    if (el && nodeHost) {
-        nodeHost.appendChild(el);
-        updateNode(el, { header: 'Hello world!' });
+    static create(nodeHostId: string, graphId: string): BoardManager | null {
+        const nodeHost = document.getElementById(nodeHostId);
+        const canvasState = initializeCanvas(graphId, { send }, { send });
+
+        if (nodeHost && canvasState) {
+            return new BoardManager(nodeHost, canvasState);
+        } else {
+            return null;
+        }
     }
+
+    constructor(nodeHost: HTMLElement, canvasState: GraphCanvasState) {
+        this.nodeHost = nodeHost;
+        this.canvasState = canvasState;
+    }
+
+    redrawCanvas() {
+        redraw(this.canvasState);
+    }
+
+    createNode(nodeRef: NodeRef) {
+        const el = createNode(nodeRefId(nodeRef));
+        if (el) {
+            this.nodeHost.appendChild(el);
+            updateNode(el, { header: 'Hello world!' });
+        }
+    }
+}
+
+const manager = BoardManager.create('node-host', 'graph');
+
+if (manager) {
+    manager.redrawCanvas();
 }
