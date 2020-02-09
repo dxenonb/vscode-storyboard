@@ -1,4 +1,4 @@
-function createNode(id: string) {
+function initNode(id: string) {
     const root = document.createElement('div');
     root.id = id;
     root.className = 'node-root';
@@ -27,16 +27,26 @@ function createNode(id: string) {
     return root;
 }
 
-interface NodeUpdateOptions { header?: string, content?: string }
+function updateNodeContent(el: HTMLElement, header: string, content: string) {
+    el.querySelector('.node-header')!.textContent = header;
+    const ta = el.querySelector('.node-content');
+    if (ta && ta instanceof HTMLTextAreaElement) {
+        ta.value = content;
+    }
+}
 
-function updateNode(el: HTMLElement, { header, content }: NodeUpdateOptions ) {
-    if (header) {
-        el.querySelector('.node-header')!.textContent = header;
-    }
-    if (content) {
-        const ta = el.querySelector('.node-content');
-        if (ta && ta instanceof HTMLTextAreaElement) {
-            ta.value = content;
-        }
-    }
+function updateNodeColor(el: HTMLElement, color: string) {
+    el.querySelector('.node-color-bar')!.setAttribute(
+        'style',
+        `background-color: ${color}`,
+    );
+}
+
+function updateNodePosition(el: HTMLElement, x: number, y: number, scale: number) {
+    const newStyle = `transform: translate(${x}, ${y}) scale(${scale})`;
+    el.querySelector('.node-root')!.setAttribute('style', newStyle);
+}
+
+function updateNodeRef(el: HTMLElement, ref: NodeRef) {
+    el.setAttribute('data-node-ref', ref);
 }
