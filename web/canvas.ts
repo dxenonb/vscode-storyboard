@@ -224,8 +224,3 @@ const redraw = (state: GraphCanvasState) => {
         ctx.restore();
     });
 };
-
-module.exports = {
-    initializeCanvas,
-    redraw,
-};
