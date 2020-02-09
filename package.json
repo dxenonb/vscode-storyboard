@@ -10,14 +10,21 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.sequenceGraph.openBoard"
+		"onCommand:extension.sequenceGraph.createBoard",
+		"onCommand:extension.sequenceGraph.openBoard",
+		"onView:sequenceGraph.boardEditor",
+		"workspaceContains:**/*.seqgraph.json"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
+				"command": "extension.sequenceGraph.createBoard",
+				"title": "Create SequenceGraph Board"
+			},
+			{
 				"command": "extension.sequenceGraph.openBoard",
-				"title": "Open Sequence Graph Board"
+				"title": "Open SequenceGraph Board"
 			}
 		]
 	},
