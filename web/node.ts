@@ -9,8 +9,9 @@ function initNode(id: string) {
     const colorBar = document.createElement('div');
     colorBar.className = 'node-color-bar';
 
-    const header = document.createElement('p');
+    const header = document.createElement('input');
     header.className = 'node-header';
+    header.disabled = true;
 
     const content = document.createElement('textarea');
     content.className = 'node-content';
@@ -28,7 +29,10 @@ function initNode(id: string) {
 }
 
 function updateNodeContent(el: HTMLElement, header: string, content: string) {
-    el.querySelector('.node-header')!.textContent = header;
+    const ie = el.querySelector('.node-header');
+    if (ie instanceof HTMLInputElement) {
+        ie.value = header;
+    }
     const ta = el.querySelector('.node-content');
     if (ta && ta instanceof HTMLTextAreaElement) {
         ta.value = content;
@@ -49,4 +53,14 @@ function updateNodePosition(el: HTMLElement, x: number, y: number, scale: number
 
 function updateNodeRef(el: HTMLElement, ref: NodeRef) {
     el.setAttribute('data-node-ref', ref);
+}
+
+function nodeRefFromElement(el: HTMLElement): string | null {
+    if (el.matches('.node-root')) {
+        return el.getAttribute('data-node-ref');
+    }
+    if (el.className.indexOf('node-') === -1 || !el.parentElement) {
+        return null;
+    }
+    return nodeRefFromElement(el.parentElement);
 }

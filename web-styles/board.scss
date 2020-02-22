@@ -140,13 +140,28 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     flex: 0 0 16px;
     font-size: 14px;
     font-weight: bold;
-    margin: $std-padding $std-padding;
+
+    $padding: $std-padding / 2;
+    margin: $padding;
+    padding: $padding;
 
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 
     cursor: pointer;
+
+    background: none;
+    border: none;
+    color: var(--vscode-editor-foreground);
+
+    -webkit-appearance: none;
+    appearance: none;
+
+    border-radius: $std-border-radius;
+    &:not(:disabled):focus {
+        background: var(--vscode-editor-background);
+    }
 }
 
 .node-content {

@@ -34,6 +34,9 @@ interface BoardNode {
     pos: Vec2d;
     color: string | null;
     size: Vec2d | null;
+
+    header: string;
+    content: string;
 }
 
 interface BoardGraph {
@@ -57,6 +60,7 @@ class IdAllocator {
 
 class BoardManager {
     private nodeHost: HTMLElement;
+    private canvasHost: HTMLElement;
     private canvasState: GraphCanvasState;
 
     private renderedNodes: Map<NodeRef, HTMLElement>;
@@ -67,19 +71,28 @@ class BoardManager {
 
     private graph: BoardGraph;
 
+    private boardState: BoardState;
+    private _idleState: BoardState;
+
     static create(nodeHostId: string, graphId: string): BoardManager | null {
         const nodeHost = document.getElementById(nodeHostId);
+        const canvasHost = document.getElementById(graphId);
         const canvasState = initializeCanvas(graphId, { send }, { send });
 
-        if (nodeHost && canvasState) {
-            return new BoardManager(nodeHost, canvasState);
+        if (nodeHost && canvasHost && canvasState) {
+            return new BoardManager(nodeHost, canvasHost, canvasState);
         } else {
             return null;
         }
     }
 
-    constructor(nodeHost: HTMLElement, canvasState: GraphCanvasState) {
+    constructor(
+        nodeHost: HTMLElement,
+        canvasHost: HTMLElement,
+        canvasState: GraphCanvasState,
+    ) {
         this.nodeHost = nodeHost;
+        this.canvasHost = canvasHost;
         this.canvasState = canvasState;
 
         this.renderedNodes = new Map();
@@ -90,6 +103,11 @@ class BoardManager {
             nodes: new Map(),
             edges: [],
         };
+
+        this._idleState = { kind: 'idle' };
+        this.boardState = this._idleState;
+
+        this.registerListeners();
     }
 
     initialDraw() {
@@ -107,6 +125,9 @@ class BoardManager {
             pos: new Vec2d(0, 0),
             color: null,
             size: null,
+
+            content: 'test',
+            header: 'testo',
         };
 
         this.graph.nodes.set(nodeRef, node);
@@ -114,6 +135,68 @@ class BoardManager {
         this.renderedNodes.set(nodeRef, el);
 
         return nodeRef;
+    }
+
+    registerListeners() {
+        const host = this.nodeHost;
+        host.addEventListener('dblclick', (event) => {
+            const el = this.findHeader(event.target);
+            if (!el) {
+                return;
+            }
+            if (this.boardState?.kind !== 'editingHeader') {
+                this.cancelAction();
+            } else if (this.boardState.input === el) {
+                return;
+            }
+            const ref = nodeRefFromElement(el)!;
+            this.boardState = {
+                kind: 'editingHeader',
+                input: el,
+                ref,
+            };
+            el.disabled = false;
+            el.focus();
+        });
+        const handleClickOff = (event: Event) => {
+            const el = event.target;
+            const state = this.boardState;
+            if (state.kind === 'editingHeader') {
+                if (state.input === el) {
+                    return;
+                } else {
+                    event.preventDefault();
+                    this.cancelAction();
+                }
+            }
+        };
+        host.addEventListener('click', handleClickOff);
+        this.canvasHost.addEventListener('click', handleClickOff);
+    }
+
+    cancelAction() {
+        if (this.boardState === null) {
+            return;
+        }
+
+        if (this.boardState.kind === 'editingHeader') {
+            const { ref, input } = this.boardState;
+            const value = input.value;
+            input.disabled = true;
+            this.graph.nodes.get(ref)!.header = value;
+
+            this.boardState = this._idleState;
+        }
+    }
+
+    findHeader(el: EventTarget | null): HTMLInputElement | null {
+        if (!el || !(el instanceof HTMLInputElement)) {
+            return null;
+        }
+        if (el.matches('.node-header')) {
+            return el;
+        }
+        return null;
     }
 }
 
