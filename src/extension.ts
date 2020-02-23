@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import SequenceGraph from './sequence-graph';
+import ExtensionState from './extState';
 
 export function activate(context: vscode.ExtensionContext) {
-	const extension = new SequenceGraph(context);
+	const extension = new ExtensionState(context);
 	context.subscriptions.push(extension);
 }
 

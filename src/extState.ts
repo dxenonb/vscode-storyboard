@@ -18,7 +18,7 @@ const MESSAGES = {
     openFileToolTip: 'Open this file in the board editor?',
 };
 
-export default class SequenceGraph implements Disposable {
+export default class ExtensionState implements Disposable {
 
     private editors: BoardEditor[];
     private editorsByFile: { [path: string]: BoardEditor };
@@ -152,9 +152,9 @@ export default class SequenceGraph implements Disposable {
 }
 
 class WebviewSerializer implements vscode.WebviewPanelSerializer {
-    private sequenceGraph: SequenceGraph;
+    private sequenceGraph: ExtensionState;
 
-    constructor(sequenceGraph: SequenceGraph) {
+    constructor(sequenceGraph: ExtensionState) {
         this.sequenceGraph = sequenceGraph;
     }
 
