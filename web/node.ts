@@ -66,8 +66,8 @@ class RawNodeWrapper {
 }
 
 function _initNode(rx: BoardMessageReceiver): HTMLElement {
-    type Handler = (ref: NodeRef, event: Event) => BoardMessage | null;
-    const withNodeRef = (f: Handler) => (event: Event) => {
+    type Handler<E extends Event> = (ref: NodeRef, event: E) => BoardMessage | null;
+    const withNodeRef = <E extends Event>(f: Handler<E>) => (event: E) => {
         const ref = nodeRefFromElement(event.target);
         if (!ref) {
             return;
@@ -92,7 +92,29 @@ function _initNode(rx: BoardMessageReceiver): HTMLElement {
         if (!target.matches('.node-header')) {
             return null;
         }
-        return ({ kind: 'DblClickHeader', node });
+        return { kind: 'DblClickHeader', node };
+    }));
+    root.addEventListener('mousedown', withNodeRef((node, event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+        if (!target.matches('.node-header')) {
+            return null;
+        }
+        event.stopPropagation();
+        const pos = new Vec2d(event.x, event.y);
+        return { kind: 'SelectHeader', node, pos };
+    }));
+    root.addEventListener('mouseup', withNodeRef((node, event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+        if (!target.matches('.node-header')) {
+            return null;
+        }
+        return { kind: 'MouseUpHeader', node };
     }));
 
     const leftSocket = document.createElement('div');

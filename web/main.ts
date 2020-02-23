@@ -79,6 +79,18 @@ class BoardManager {
 
         this._idleState = { kind: 'idle' };
         this.boardState = this._idleState;
+
+        this.handleMouseMove = this.handleMouseMove.bind(this);
+        this.registerListeners();
+    }
+
+    registerListeners() {
+        this.canvasHost.addEventListener('click', () => {
+            this.receiveMessage({ kind: 'SelectCanvas' });
+        });
+        this.nodeHost.addEventListener('click', (event) => {
+            this.cancelAction();
+        });
     }
 
     initialDraw() {
@@ -108,6 +120,21 @@ class BoardManager {
         return nodeRef;
     }
 
+    moveNode(ref: NodeRef, delta: Vec2d) {
+        const modelNode = this.graph.nodes.get(ref)!;
+        modelNode.pos.add(delta);
+
+        const node = this.renderedNodes.get(ref);
+        if (!node) {
+            return;
+        }
+        // TODO: Handle camera
+        node.position = modelNode.pos;
+        node.render();
+
+        // TODO: Culling check...
+    }
+
     getRendered(ref: NodeRef): RawNodeWrapper {
         const n = this.renderedNodes.get(ref);
         if (!n) {
@@ -129,16 +156,60 @@ class BoardManager {
             }
             this.boardState = { kind: 'editingHeader', ref: message.node };
         } else if (message.kind === 'SelectHeader') {
-
+            const state = this.boardState;
+            if (state.kind === 'editingHeader' && state.ref === message.node) {
+                return;
+            }
+            this.cancelAction();
+            this.listenDrag(true);
+            this.boardState = {
+                kind: 'draggingNode',
+                ref: message.node,
+                start: message.pos,
+            };
         } else if (message.kind === 'UpdateContent') {
 
         } else if (message.kind === 'UpdateHeader') {
 
         } else if (message.kind === 'SelectCanvas') {
-
-        } else if (message.kind === 'Drag') {
-
+            this.cancelAction();
+            // TODO: Drag canvas
+        } else if (message.kind === 'MouseUpHeader') {
+            if (this.boardState.kind !== 'draggingNode') {
+                return;
+            }
+            this.cancelAction();
+            // TODO: Save new position
         }
+    }
+
+    listenDrag(listen: boolean) {
+        if (!listen) {
+            window.removeEventListener('mousemove', this.handleMouseMove);
+            return;
+        }
+        window.addEventListener('mousemove', this.handleMouseMove);
+    }
+
+    handleMouseMove(event: MouseEvent) {
+        const state = this.boardState;
+        if (state.kind !== 'draggingNode') {
+            return;
+        }
+        const pos = new Vec2d(event.x, event.y);
+        const delta = pos.clone().sub(state.start);
+        state.start = pos;
+        this.moveNode(state.ref, delta);
+    }
+
+    cancelAction() {
+        const state = this.boardState;
+        if (state.kind === 'editingHeader') {
+            const node = this.getRendered(state.ref);
+            node.lockHeader();
+            this.boardState = this._idleState;
+        }
+        this.listenDrag(false);
     }
 }
 

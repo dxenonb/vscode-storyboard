@@ -14,6 +14,13 @@ class Vec2d {
     add(vec: Vec2d) {
         this.x += vec.x;
         this.y += vec.y;
+        return this;
+    }
+
+    sub(vec: Vec2d) {
+        this.x -= vec.x;
+        this.y -= vec.y;
+        return this;
     }
 
     scale(x: number, y?: number) {
@@ -22,5 +29,6 @@ class Vec2d {
             x = y;
         }
         this.y *= x;
+        return this;
     }
 }

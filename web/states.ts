@@ -4,6 +4,8 @@ type Idle = { kind: 'idle' };
 
 interface DraggingNode {
     kind: 'draggingNode';
+    ref: NodeRef;
+    start: Vec2d;
 }
 
 interface EditingHeader {
@@ -19,7 +21,7 @@ type BoardMessage
     | UpdateHeader
     | UpdateContent
     | SelectCanvas
-    | Drag;
+    | MouseUpHeader;
 
 enum BoardMessageKind {
     SelectHeader = 'SelectHeader',
@@ -27,12 +29,14 @@ enum BoardMessageKind {
     UpdateHeader = 'UpdateHeader',
     UpdateContent = 'UpdateContent',
     SelectCanvas = 'SelectCanvas',
+    MouseUpHeader = 'MouseUpHeader',
     Drag = 'Drag',
 }
 
 type _Ne<K> = { kind: K, node: NodeRef };
 
-type SelectHeader = _Ne<'SelectHeader'>;
+type SelectHeader = _Ne<'SelectHeader'>
+    & { pos: Vec2d };
 
 type DblClickHeader = _Ne<'DblClickHeader'>;
 
@@ -44,4 +48,4 @@ type UpdateContent = _Ne<'UpdateContent'>
 
 type SelectCanvas = { kind: 'SelectCanvas' };
 
-type Drag = { kind: 'Drag', delta: Vec2d, newPos: Vec2d };
+type MouseUpHeader = _Ne<'MouseUpHeader'>;
