@@ -1,4 +1,6 @@
 import { WebviewPanel, Uri, Webview } from "vscode";
+import { BoardGraph, Vec2d } from "./model";
+import { SeqGraphMessage } from "./messages";
 
 export type BoardViewResources = { [key: string]: Uri };
 
@@ -24,8 +26,12 @@ export class BoardEditor {
         panel.onDidDispose(() => this.handleDispose());
     }
 
-    public loadBoard(content: any) {
-        console.log('got content', content);
+    public loadBoard(content: BoardGraph<Vec2d>) {
+        const message: SeqGraphMessage = {
+            command: 'UpdateGraph',
+            nodes: Object.values(content.nodes),
+        };
+        this.panel.webview.postMessage(message);
     }
 
     private handleDispose() {

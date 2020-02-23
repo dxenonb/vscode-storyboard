@@ -41,13 +41,15 @@ class RawNodeWrapper {
         _updateNodePosition(this.node, x, y, 1.0);
     }
 
-    attach(position: Vec2d, ref: NodeRef) {
+    attach(node: BoardNode) {
         if (this.attached) {
             throw new Error('Node is already attached!');
         }
 
-        this.position = position;
-        _updateNodeRef(this.node, ref);
+        this.content = node.content;
+        this.header = node.header;
+        this.position = node.pos;
+        _updateNodeRef(this.node, node.ref);
 
         this.host.appendChild(this.node);
         this.attached = true;

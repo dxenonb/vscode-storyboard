@@ -2,33 +2,37 @@ class Vec2d {
     public x: number;
     public y: number;
 
-    constructor(x: number, y: number) {
+    public constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
     }
 
-    clone() {
+    public clone() {
         return new Vec2d(this.x, this.y);
     }
 
-    add(vec: Vec2d) {
+    public add(vec: Vec2d) {
         this.x += vec.x;
         this.y += vec.y;
         return this;
     }
 
-    sub(vec: Vec2d) {
+    public sub(vec: Vec2d) {
         this.x -= vec.x;
         this.y -= vec.y;
         return this;
     }
 
-    scale(x: number, y?: number) {
+    public scale(x: number, y?: number) {
         this.x *= x;
         if (y) {
             x = y;
         }
         this.y *= x;
         return this;
+    }
+
+    static wrap({ x, y }: { x: number, y: number }): Vec2d {
+        return new Vec2d(x, y);
     }
 }

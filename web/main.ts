@@ -4,23 +4,6 @@ const MAIN_CONTEXT_MENU_OPTIONS = [
     { action: 'createNode', text: 'New Node', aliases: null },
 ];
 
-type NodeRef = string;
-
-interface BoardNode {
-    ref: NodeRef;
-    pos: Vec2d;
-    color: string | null;
-    size: Vec2d | null;
-
-    header: string;
-    content: string;
-}
-
-interface BoardGraph {
-    nodes: Map<NodeRef, BoardNode>;
-    edges: Array<{ start: NodeRef, end: NodeRef }>;
-}
-
 class IdAllocator {
     private nextId: number;
 
@@ -136,7 +119,7 @@ class BoardManager {
 
         // Render the node
         const rendered = new RawNodeWrapper(this.nodeHost, this.eventRx);
-        rendered.attach(pos, nodeRef);
+        rendered.attach(node);
         this.renderedNodes.set(nodeRef, rendered);
 
         return nodeRef;
@@ -245,17 +228,48 @@ class BoardManager {
         this.contextMenu.deactivate();
         this.listenDrag(false);
     }
+
+    postMessage(_: SeqGraphMessage) { }
+
+    receiveBackendMessage(message: SeqGraphMessage) {
+        if (message.command !== 'UpdateGraph') {
+            return;
+        }
+        for (const naked of message.nodes) {
+            const node = hydrateBoardNode(naked);
+            this.graph.nodes.set(node.ref, node);
+            let rendered = this.renderedNodes.get(node.ref);
+            if (!rendered) {
+                rendered = new RawNodeWrapper(this.nodeHost, this.eventRx);
+                this.renderedNodes.set(node.ref, rendered);
+            }
+            rendered.attach(node);
+        }
+    }
+}
+
+function hydrateBoardNode(node: IncomingBoardNode): BoardNode {
+    node.pos = Vec2d.wrap(node.pos);
+    node.size = node.size && Vec2d.wrap(node.size);
+    return node as BoardNode;
 }
 
 // use an IIFE to hide the manager from the global scope
 // (we must not let the webview panel fall into the global scope)
 (() => {
+    const api = acquireVsCodeApi();
     const manager = BoardManager.create('node-host', 'graph');
 
     if (manager) {
+        manager.postMessage = api.postMessage;
+        window.addEventListener('message', (event) => {
+            const message: SeqGraphMessage = event.data;
+            manager.receiveBackendMessage(message);
+        });
+
         manager.initialDraw();
-        manager.createNode(new Vec2d(100, 100));
     } else {
         console.error('Board not initialized');
+        // TODO: Send an error message
     }
 })();

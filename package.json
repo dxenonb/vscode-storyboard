@@ -31,7 +31,7 @@
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "npm run compile-src && npm run compile-web && npm run compile-web-styles",
-		"compile-src": "tsc -p ./src",
+		"compile-src": "tsc -p ./src -d",
 		"compile-web": "tsc -p ./web",
 		"compile-web-styles": "sass ./web-styles/:./media/styles/",
 		"lint": "eslint src web --ext ts",

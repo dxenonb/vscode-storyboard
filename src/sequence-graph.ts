@@ -6,6 +6,7 @@ import * as fs from 'fs';
 
 import { BoardEditor, BoardViewResources } from "./board-editor";
 import Commands from "./commands";
+import { BoardNode, Vec2d, BoardGraph } from "./model";
 
 const BOARD_WEBVIEW_ID = 'sequenceGraph.boardEditor';
 
@@ -87,6 +88,9 @@ export default class SequenceGraph implements Disposable {
         let document;
         try {
             document = parseBoardJson(content);
+            if (!document) {
+                return null;
+            }
         } catch {
             vscode.window.showErrorMessage(MESSAGES.invalidFormat);
             return null;
@@ -160,12 +164,34 @@ class WebviewSerializer implements vscode.WebviewPanelSerializer {
     }
 }
 
-function parseBoardJson(content: string) {
+function parseBoardJson(text: string): BoardGraph<Vec2d> | null {
+    let content: any;
     try {
-        content = JSON.parse(content);
+        content = JSON.parse(text);
     } catch {
         return null;
     }
 
-    return content;
+    if (!content || !content.nodes) {
+        return null;
+    }
+
+    const nodes = content.nodes;
+    for (const ref of Object.keys(nodes)) {
+        const node = nodes[ref];
+        if (!isNode(node)) {
+            return null;
+        }
+    }
+
+    return content as BoardGraph<Vec2d>;
+}
+
+function isNode(node: any): node is BoardNode<Vec2d> {
+    return true
+        && node.ref
+        && node.pos && node.pos.x && node.pos.y
+        && (node.color || node.color === null)
+        && ((node.size && node.size.x && node.size.y) || node.size === null)
+        && typeof node.header === 'string' && typeof node.content === 'string';
 }
