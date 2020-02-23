@@ -1,11 +1,6 @@
 import { WebviewPanel, Uri, Webview } from "vscode";
 
-export interface BoardViewResources {
-	scriptMain: Uri,
-    scriptCanvas: Uri,
-    scriptNode: Uri,
-	style: Uri,
-}
+export type BoardViewResources = { [key: string]: Uri };
 
 export class BoardEditor {
 
@@ -14,16 +9,15 @@ export class BoardEditor {
 
     public constructor(
         panel: WebviewPanel,
-        { scriptMain, scriptCanvas, scriptNode, style }: BoardViewResources,
+        resources: BoardViewResources,
     ) {
         this.panel = panel;
 
-        this.resources = {
-            scriptMain: panel.webview.asWebviewUri(scriptMain),
-            scriptCanvas: panel.webview.asWebviewUri(scriptCanvas),
-            style: panel.webview.asWebviewUri(style),
-            scriptNode: panel.webview.asWebviewUri(scriptNode),
-        };
+        this.resources = {};
+        Object.keys(resources).reduce((sum: BoardViewResources, cur) => {
+            sum[cur] = panel.webview.asWebviewUri(resources[cur]);
+            return sum;
+        }, this.resources);
 
         panel.webview.html = getWebviewContent(panel.webview, this.resources);
 
@@ -39,6 +33,8 @@ export class BoardEditor {
     }
 }
 
+// TODO: Don't use unsafe-inline for styles
+
 function getWebviewContent(webview: Webview, paths: BoardViewResources) {
 	return `
 		<!DOCTYPE html>
@@ -50,7 +46,7 @@ function getWebviewContent(webview: Webview, paths: BoardViewResources) {
 				content="
 					default-src 'none';
 					script-src ${webview.cspSource};
-					style-src ${webview.cspSource};
+					style-src 'unsafe-inline' ${webview.cspSource};
 				"
 			/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,6 +56,7 @@ function getWebviewContent(webview: Webview, paths: BoardViewResources) {
 		<body>
             <canvas width="400" height="400" id="graph"></canvas>
             <div id="node-host"></div>
+            <script src="${paths.scriptVec2d}"></script>
             <script src="${paths.scriptCanvas}"></script>
             <script src="${paths.scriptNode}"></script>
 			<script src="${paths.scriptMain}"></script>

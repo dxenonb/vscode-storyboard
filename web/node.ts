@@ -1,7 +1,99 @@
-function initNode(id: string) {
+class RawNodeWrapper {
+
+    public header: string;
+    public content: string;
+    public position: Vec2d;
+
+    private host: HTMLElement;
+    private rx: BoardMessageReceiver;
+    private attached: boolean;
+    private node: HTMLElement;
+
+    constructor(host: HTMLElement, rx: BoardMessageReceiver) {
+        this.host = host;
+        this.rx = rx;
+        this.attached = false;
+        this.node = _initNode(rx);
+
+        this.header = '';
+        this.content = '';
+        this.position = new Vec2d(0, 0);
+    }
+
+    unlockHeader() {
+        const header = this.node.querySelector('.node-header');
+        if (header instanceof HTMLInputElement) {
+            header.disabled = false;
+            header.focus();
+        }
+    }
+
+    lockHeader() {
+        const header = this.node.querySelector('.node-header');
+        if (header instanceof HTMLInputElement) {
+            header.disabled = true;
+        }
+    }
+
+    render() {
+        _updateNodeContent(this.node, this.header, this.content);
+        const { x, y } = this.position;
+        _updateNodePosition(this.node, x, y, 1.0);
+    }
+
+    attach(position: Vec2d, ref: NodeRef) {
+        if (this.attached) {
+            throw new Error('Node is already attached!');
+        }
+
+        this.position = position;
+        _updateNodeRef(this.node, ref);
+
+        this.host.appendChild(this.node);
+        this.attached = true;
+
+        this.render();
+    }
+
+    detach() {
+        if (!this.attached) {
+            throw new Error('Node is already detached!');
+        }
+        this.host.removeChild(this.node);
+        this.attached = false;
+        _updateNodeRef(this.node, '');
+    }
+}
+
+function _initNode(rx: BoardMessageReceiver): HTMLElement {
+    type Handler = (ref: NodeRef, event: Event) => BoardMessage | null;
+    const withNodeRef = (f: Handler) => (event: Event) => {
+        const ref = nodeRefFromElement(event.target);
+        if (!ref) {
+            return;
+        }
+        const result = f(ref, event);
+        if (result) {
+            rx.send(result);
+        }
+        return result;
+    };
+
     const root = document.createElement('div');
-    root.id = id;
     root.className = 'node-root';
+
+    // disabled elements don't fire events but the events do bubble
+    // so we listen for the header events on the root
+    root.addEventListener('dblclick', withNodeRef((node, event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+        if (!target.matches('.node-header')) {
+            return null;
+        }
+        return ({ kind: 'DblClickHeader', node });
+    }));
 
     const leftSocket = document.createElement('div');
     leftSocket.className = 'node-socket';
@@ -28,7 +120,7 @@ function initNode(id: string) {
     return root;
 }
 
-function updateNodeContent(el: HTMLElement, header: string, content: string) {
+function _updateNodeContent(el: HTMLElement, header: string, content: string) {
     const ie = el.querySelector('.node-header');
     if (ie instanceof HTMLInputElement) {
         ie.value = header;
@@ -39,23 +131,29 @@ function updateNodeContent(el: HTMLElement, header: string, content: string) {
     }
 }
 
-function updateNodeColor(el: HTMLElement, color: string) {
+function _updateNodeColor(el: HTMLElement, color: string) {
     el.querySelector('.node-color-bar')!.setAttribute(
         'style',
         `background-color: ${color}`,
     );
 }
 
-function updateNodePosition(el: HTMLElement, x: number, y: number, scale: number) {
-    const newStyle = `transform: translate(${x}, ${y}) scale(${scale})`;
-    el.querySelector('.node-root')!.setAttribute('style', newStyle);
+function _updateNodePosition(el: HTMLElement, x: number, y: number, scale: number) {
+    if (!el.matches('.node-root')) {
+        throw new Error('Call _updateNodePosition on root nodes only');
+    }
+    const newStyle = `transform: translate(${x}px, ${y}px) scale(${scale})`;
+    el.setAttribute('style', newStyle);
 }
 
-function updateNodeRef(el: HTMLElement, ref: NodeRef) {
+function _updateNodeRef(el: HTMLElement, ref: NodeRef) {
     el.setAttribute('data-node-ref', ref);
 }
 
-function nodeRefFromElement(el: HTMLElement): string | null {
+function nodeRefFromElement(el: EventTarget | null): string | null {
+    if (!el || !(el instanceof HTMLElement)) {
+        return null;
+    }
     if (el.matches('.node-root')) {
         return el.getAttribute('data-node-ref');
     }

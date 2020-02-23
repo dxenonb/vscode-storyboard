@@ -2,33 +2,6 @@ const send = () => { };
 
 type NodeRef = string;
 
-class Vec2d {
-    public x: number;
-    public y: number;
-
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-    clone() {
-        return new Vec2d(this.x, this.y);
-    }
-
-    add(vec: Vec2d) {
-        this.x += vec.x;
-        this.y += vec.y;
-    }
-
-    scale(x: number, y?: number) {
-        this.x *= x;
-        if (y) {
-            x = y;
-        }
-        this.y *= x;
-    }
-}
-
 interface BoardNode {
     ref: NodeRef;
     pos: Vec2d;
@@ -63,10 +36,9 @@ class BoardManager {
     private canvasHost: HTMLElement;
     private canvasState: GraphCanvasState;
 
-    private renderedNodes: Map<NodeRef, HTMLElement>;
+    private renderedNodes: Map<NodeRef, RawNodeWrapper>;
+    private eventRx: BoardMessageReceiver;
 
-    // TODO: Decouple nodes refs from physical element IDs
-    // private idManager: IdAllocator;
     private nodeRefManager: IdAllocator;
 
     private graph: BoardGraph;
@@ -96,6 +68,7 @@ class BoardManager {
         this.canvasState = canvasState;
 
         this.renderedNodes = new Map();
+        this.eventRx = { send: this.receiveMessage.bind(this) };
 
         this.nodeRefManager = new IdAllocator();
 
@@ -106,8 +79,6 @@ class BoardManager {
 
         this._idleState = { kind: 'idle' };
         this.boardState = this._idleState;
-
-        this.registerListeners();
     }
 
     initialDraw() {
@@ -115,88 +86,59 @@ class BoardManager {
     }
 
     createNode() {
+        // Create the node in the model
         const nodeRef = this.nodeRefManager.alloc().toString();
-
-        const el = initNode(nodeRefId(nodeRef));
-        updateNodeRef(el, nodeRef);
-
+        const pos = new Vec2d(100, 100);
         const node: BoardNode = {
             ref: nodeRef,
-            pos: new Vec2d(0, 0),
+            pos,
             color: null,
             size: null,
 
             content: 'test',
             header: 'testo',
         };
-
         this.graph.nodes.set(nodeRef, node);
-        this.nodeHost.appendChild(el);
-        this.renderedNodes.set(nodeRef, el);
+
+        // Render the node
+        const rendered = new RawNodeWrapper(this.nodeHost, this.eventRx);
+        rendered.attach(pos, nodeRef);
+        this.renderedNodes.set(nodeRef, rendered);
 
         return nodeRef;
     }
 
-    registerListeners() {
-        const host = this.nodeHost;
-        host.addEventListener('dblclick', (event) => {
-            const el = this.findHeader(event.target);
-            if (!el) {
-                return;
-            }
-            if (this.boardState?.kind !== 'editingHeader') {
-                this.cancelAction();
-            } else if (this.boardState.input === el) {
-                return;
-            }
-            const ref = nodeRefFromElement(el)!;
-            this.boardState = {
-                kind: 'editingHeader',
-                input: el,
-                ref,
-            };
-            el.disabled = false;
-            el.focus();
-        });
-        const handleClickOff = (event: Event) => {
-            const el = event.target;
-            const state = this.boardState;
-            if (state.kind === 'editingHeader') {
-                if (state.input === el) {
-                    return;
-                } else {
-                    event.preventDefault();
-                    this.cancelAction();
-                }
-            }
-        };
-        host.addEventListener('click', handleClickOff);
-        this.canvasHost.addEventListener('click', handleClickOff);
+    getRendered(ref: NodeRef): RawNodeWrapper {
+        const n = this.renderedNodes.get(ref);
+        if (!n) {
+            throw new Error(`Expected node ${ref}, but it did not exist`);
+        }
+        return n;
     }
 
-    cancelAction() {
-        if (this.boardState === null) {
-            return;
-        }
+    receiveMessage(message: BoardMessage) {
+        console.log('Got message!', message);
 
-        if (this.boardState.kind === 'editingHeader') {
-            const { ref, input } = this.boardState;
-            const value = input.value;
-            input.disabled = true;
-            this.graph.nodes.get(ref)!.header = value;
+        const state = this.boardState;
+        if (message.kind === 'DblClickHeader') {
+            const node = this.getRendered(message.node);
+            node.unlockHeader();
+            if (state.kind === 'editingHeader' && state.ref !== message.node) {
+                const prev = this.getRendered(state.ref);
+                prev.lockHeader();
+            }
+            this.boardState = { kind: 'editingHeader', ref: message.node };
+        } else if (message.kind === 'SelectHeader') {
 
-            this.boardState = this._idleState;
-        }
-    }
+        } else if (message.kind === 'UpdateContent') {
 
-    findHeader(el: EventTarget | null): HTMLInputElement | null {
-        if (!el || !(el instanceof HTMLInputElement)) {
-            return null;
+        } else if (message.kind === 'UpdateHeader') {
+
+        } else if (message.kind === 'SelectCanvas') {
+
+        } else if (message.kind === 'Drag') {
+
         }
-        if (el.matches('.node-header')) {
-            return el;
-        }
-        return null;
     }
 }
 

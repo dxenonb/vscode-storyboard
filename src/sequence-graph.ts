@@ -24,6 +24,7 @@ export default class SequenceGraph implements Disposable {
         this.editorsByFile = {};
 
         this.resources = {
+            scriptVec2d: this.mediaUri(['vec2d.js']),
             scriptMain: this.mediaUri(['main.js']),
             scriptCanvas: this.mediaUri(['canvas.js']),
             scriptNode: this.mediaUri(['node.js']),
@@ -51,7 +52,7 @@ export default class SequenceGraph implements Disposable {
 			vscode.ViewColumn.Active,
 			{
 				enableScripts: true,
-				localResourceRoots: this.localResourceRoots,
+                localResourceRoots: this.localResourceRoots,
 			},
 		);
 
