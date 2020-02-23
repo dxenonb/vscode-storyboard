@@ -16,6 +16,18 @@ class IdAllocator {
         this.nextId += 1;
         return id;
     }
+
+    analyze<T, E extends Iterable<T>>(incoming: E, map: (item: T) => string) {
+        let maxUsed = this.nextId - 1;
+        for (const id of incoming) {
+            const val = parseInt(map(id), 10);
+            if (isNaN(val)) {
+                continue;
+            }
+            maxUsed = Math.max(maxUsed, val);
+        }
+        this.nextId = maxUsed + 1;
+    }
 }
 
 class BoardManager {
@@ -245,6 +257,10 @@ class BoardManager {
             }
             rendered.attach(node);
         }
+        this.nodeRefManager.analyze(
+            this.graph.nodes.values(),
+            (node: BoardNode) => node.ref,
+        );
     }
 }
 
