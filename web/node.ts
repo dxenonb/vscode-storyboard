@@ -126,9 +126,15 @@ function _initNode(rx: BoardMessageReceiver): HTMLElement {
     const header = document.createElement('input');
     header.className = 'node-header';
     header.disabled = true;
+    header.addEventListener('input', withNodeRef((node) =>
+        ({ kind: 'UpdateHeader', node, content: header.value })
+    ));
 
     const content = document.createElement('textarea');
     content.className = 'node-content';
+    content.addEventListener('input', withNodeRef((node) =>
+        ({ kind: 'UpdateContent', node, content: content.value })
+    ));
 
     const rightSocket = document.createElement('div');
     rightSocket.className = 'node-socket';

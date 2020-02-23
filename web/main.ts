@@ -108,7 +108,11 @@ class BoardManager {
                 this.nodeHost,
                 pos,
                 MAIN_CONTEXT_MENU_OPTIONS,
-            );
+            ).then((action) => {
+                if (action === 'createNode') {
+                    this.createNode(pos);
+                }
+            });
         });
     }
 
@@ -116,10 +120,9 @@ class BoardManager {
         redraw(this.canvasState);
     }
 
-    createNode() {
+    createNode(pos: Vec2d) {
         // Create the node in the model
         const nodeRef = this.nodeRefManager.alloc().toString();
-        const pos = new Vec2d(100, 100);
         const node: BoardNode = {
             ref: nodeRef,
             pos,
@@ -150,8 +153,19 @@ class BoardManager {
         // TODO: Handle camera
         node.position = modelNode.pos;
         node.render();
+    }
 
-        // TODO: Culling check...
+    updateNode(ref: NodeRef, field: 'header' | 'content', value: string) {
+        const modelNode = this.graph.nodes.get(ref)!;
+        modelNode[field] = value;
+
+        const node = this.renderedNodes.get(ref);
+        if (!node) {
+            return;
+        }
+
+        node[field] = value;
+        node.render();
     }
 
     getRendered(ref: NodeRef): RawNodeWrapper {
@@ -185,9 +199,11 @@ class BoardManager {
                 start: message.pos,
             };
         } else if (message.kind === 'UpdateContent') {
-
+            this.updateNode(message.node, 'content', message.content);
+            // TODO: Save
         } else if (message.kind === 'UpdateHeader') {
-
+            this.updateNode(message.node, 'header', message.content);
+            // TODO: Save
         } else if (message.kind === 'SelectCanvas') {
             this.cancelAction();
             // TODO: Drag canvas
@@ -238,7 +254,7 @@ class BoardManager {
 
     if (manager) {
         manager.initialDraw();
-        manager.createNode();
+        manager.createNode(new Vec2d(100, 100));
     } else {
         console.error('Board not initialized');
     }
