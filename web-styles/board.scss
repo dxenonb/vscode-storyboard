@@ -168,6 +168,9 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     flex: 1 1 64px;
     resize: none;
 
+    font-family: inherit;
+    font-size: 12px;
+
     margin: $std-padding;
     margin-top: 0;
     padding: $std-padding / 3;
@@ -195,7 +198,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
 
     cursor: default;
     user-select: none;
-    
+
     overflow-x: hidden;
     overflow-y: auto;
 
