@@ -27,44 +27,42 @@ class ContextMenu {
         this.currentHost = null;
     }
 
-    public activate(host: HTMLElement, options: ContextMenuItem[]): Promise<string | null> {
+    public activate(
+        host: HTMLElement,
+        pos: Vec2d,
+        options: ContextMenuItem[],
+    ): Promise<string | null> {
         if (this.active) {
             this.resolve(null);
         }
-        
+
         host.appendChild(this.node);
         this.currentHost = host;
 
-        // position the context menu
-        // TODO
+        // clear all children
+        // TODO: caching? does it really matter?
+        while (this.node.lastChild) {
+            const el = this.node.lastChild;
+            this.node.removeChild(this.node.lastChild);
+        }
 
         // render the options
         const children = this.node.children;
-        let i: number;
-        for (i = 0; i < options.length; i += 1) {
+        for (let i = 0; i < options.length; i += 1) {
+            // TODO: Refactor -- I had started on caching but then said screw it
             const opt = options[i];
             if (opt.separator) {
                 _initDivider(this.node, i);
                 continue;
             }
 
-            const el = i >= children.length
-                ? _initContextItem(this.node)
-                : children[i];
+            const el = _initContextItem(this.node);
             _updateContextItem(el, opt.text, opt.action);
         }
 
-        // remove extra options
-        if (i < children.length) {
-            while (this.node.children.length > options.length) {
-                const el = this.node.lastChild;
-                if (el) {
-                    this.node.removeChild(el);
-                } else {
-                    break;
-                }
-            }
-        }
+        // position the context menu
+        const computedStyle =this.computeStyle(pos);
+        this.node.setAttribute('style', computedStyle);
 
         // store the resolver
         return new Promise((resolve) => {
@@ -75,6 +73,32 @@ class ContextMenu {
     public deactivate() {
         console.log('deactivating context menu');
         this.resolve(null);
+    }
+
+    /// Test if an event originated inside the context menu.
+    public spawnedEvent(event: Event): boolean {
+        if (!(event.target instanceof HTMLElement)) {
+            return false;
+        }
+        return event.target.matches('.context-menu, .context-menu *');
+    }
+
+    private computeStyle(pos: Vec2d): string {
+        const maxHeight = window.innerHeight;
+        const windowWidth = window.innerWidth;
+
+        const rect = this.node.getBoundingClientRect();
+        const halfHeight = rect.height / 2;
+
+        const flipX = pos.x + rect.width > windowWidth;
+        // this seems to be the behavior of VSCode's context menu
+        const yShift = Math.max(0, (pos.y + rect.height) - maxHeight);
+        const flipY = rect.height < maxHeight && yShift > halfHeight;
+
+        const x = flipX ? pos.x - rect.width : pos.x;
+        const y = flipY ? pos.y - rect.height : pos.y - yShift;
+
+        return `top: ${y}px; left: ${x}px; max-height: ${maxHeight}px;`;
     }
 
     private resolve(action: string | null) {

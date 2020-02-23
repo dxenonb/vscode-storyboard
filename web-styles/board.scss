@@ -186,6 +186,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
 
 .context-menu {
     position: absolute;
+    z-index: 2;
 
     padding: 4px 1px;
 
@@ -194,6 +195,9 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
 
     cursor: default;
     user-select: none;
+    
+    overflow-x: hidden;
+    overflow-y: auto;
 
     hr {
         border: none;

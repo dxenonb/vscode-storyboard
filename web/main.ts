@@ -1,5 +1,9 @@
 const send = () => { };
 
+const MAIN_CONTEXT_MENU_OPTIONS = [
+    { action: 'createNode', text: 'New Node', aliases: null },
+];
+
 type NodeRef = string;
 
 interface BoardNode {
@@ -90,16 +94,21 @@ class BoardManager {
         this.canvasHost.addEventListener('click', () => {
             this.receiveMessage({ kind: 'SelectCanvas' });
         });
-        this.nodeHost.addEventListener('click', () => {
+        this.nodeHost.addEventListener('click', (event) => {
+            if (this.contextMenu.spawnedEvent(event)) {
+                // ignore events from inside the context menu
+                return;
+            }
+
             this.cancelAction();
         });
-        this.canvasHost.addEventListener('contextmenu', () => {
-            // TODO: Pass position
-            this.contextMenu.activate(this.nodeHost, [
-                { action: 'createNode', text: 'New Node', aliases: null },
-                { separator: true },
-                { action: 'createNode', text: 'New Node', aliases: null },
-            ]);
+        this.canvasHost.addEventListener('contextmenu', (event) => {
+            const pos = new Vec2d(event.x, event.y);
+            this.contextMenu.activate(
+                this.nodeHost,
+                pos,
+                MAIN_CONTEXT_MENU_OPTIONS,
+            );
         });
     }
 
