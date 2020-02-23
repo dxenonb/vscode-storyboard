@@ -213,11 +213,15 @@ class BoardManager {
     }
 }
 
-const manager = BoardManager.create('node-host', 'graph');
+// use an IIFE to hide the manager from the global scope
+// (we must not let the webview panel fall into the global scope)
+(() => {
+    const manager = BoardManager.create('node-host', 'graph');
 
-if (manager) {
-    manager.initialDraw();
-    manager.createNode();
-} else {
-    console.error('Board not initialized');
-}
+    if (manager) {
+        manager.initialDraw();
+        manager.createNode();
+    } else {
+        console.error('Board not initialized');
+    }
+})();
