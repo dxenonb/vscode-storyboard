@@ -9,6 +9,14 @@ import Commands from "./commands";
 
 const BOARD_WEBVIEW_ID = 'sequenceGraph.boardEditor';
 
+// TODO: lift all messages into constants
+const MESSAGES = {
+    invalidFormat: 'Could not open the document. It is not a valid format for SequenceGraph.',
+    openFailed: 'Failed to open board from JSON file.',
+    onlyLocalFsSupported: 'Only local files are supported',
+    openFileToolTip: 'Open this file in the board editor?',
+};
+
 export default class SequenceGraph implements Disposable {
 
     private editors: BoardEditor[];
@@ -58,13 +66,14 @@ export default class SequenceGraph implements Disposable {
 		);
 
         const editor = new BoardEditor(panel, this.resources);
+        this.editors.push(editor);
 
         return editor;
     }
 
     private async openBoardEditor(uri: Uri) {
         if (uri.scheme !== 'file') {
-            vscode.window.showErrorMessage('Only local files are supported');
+            vscode.window.showErrorMessage(MESSAGES.onlyLocalFsSupported);
             return null;
         }
         const path = uri.fsPath;
@@ -72,18 +81,19 @@ export default class SequenceGraph implements Disposable {
         try {
             content = await fs.promises.readFile(path, { encoding: 'utf-8' });
         } catch {
-            const message = 'Failed to open board from JSON file.';
-            vscode.window.showErrorMessage(message);
+            vscode.window.showErrorMessage(MESSAGES.openFailed);
             return null;
         }
         let document;
         try {
             document = parseBoardJson(content);
         } catch {
+            vscode.window.showErrorMessage(MESSAGES.invalidFormat);
             return null;
         }
         const board = await this.createBoardEditor();
         board.loadBoard(document);
+        this.editorsByFile[path] = board;
         return board;
     }
 
@@ -110,7 +120,7 @@ export default class SequenceGraph implements Disposable {
                 const uri = document.uri;
                 const path = document.uri.fsPath;
                 if (uri.scheme === 'file' && path.endsWith('.seqgraph.json')) {
-                    const message = 'Open this file in the board editor?';
+                    const message = MESSAGES.openFileToolTip;
                     vscode.window.showInformationMessage(message, 'Open')
                         .then((action) => {
                             if (action === 'Open') {
