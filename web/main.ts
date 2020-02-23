@@ -124,8 +124,8 @@ class BoardManager {
             color: null,
             size: null,
 
-            content: 'test',
-            header: 'testo',
+            content: '',
+            header: '',
         };
         this.graph.nodes.set(nodeRef, node);
 
