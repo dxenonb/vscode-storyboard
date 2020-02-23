@@ -35,6 +35,7 @@ class BoardManager {
     private nodeHost: HTMLElement;
     private canvasHost: HTMLElement;
     private canvasState: GraphCanvasState;
+    private contextMenu: ContextMenu;
 
     private renderedNodes: Map<NodeRef, RawNodeWrapper>;
     private eventRx: BoardMessageReceiver;
@@ -66,6 +67,7 @@ class BoardManager {
         this.nodeHost = nodeHost;
         this.canvasHost = canvasHost;
         this.canvasState = canvasState;
+        this.contextMenu = new ContextMenu();
 
         this.renderedNodes = new Map();
         this.eventRx = { send: this.receiveMessage.bind(this) };
@@ -88,8 +90,16 @@ class BoardManager {
         this.canvasHost.addEventListener('click', () => {
             this.receiveMessage({ kind: 'SelectCanvas' });
         });
-        this.nodeHost.addEventListener('click', (event) => {
+        this.nodeHost.addEventListener('click', () => {
             this.cancelAction();
+        });
+        this.canvasHost.addEventListener('contextmenu', () => {
+            // TODO: Pass position
+            this.contextMenu.activate(this.nodeHost, [
+                { action: 'createNode', text: 'New Node', aliases: null },
+                { separator: true },
+                { action: 'createNode', text: 'New Node', aliases: null },
+            ]);
         });
     }
 
@@ -144,8 +154,6 @@ class BoardManager {
     }
 
     receiveMessage(message: BoardMessage) {
-        console.log('Got message!', message);
-
         const state = this.boardState;
         if (message.kind === 'DblClickHeader') {
             const node = this.getRendered(message.node);
@@ -209,6 +217,7 @@ class BoardManager {
             node.lockHeader();
             this.boardState = this._idleState;
         }
+        this.contextMenu.deactivate();
         this.listenDrag(false);
     }
 }

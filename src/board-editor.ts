@@ -57,6 +57,7 @@ function getWebviewContent(webview: Webview, paths: BoardViewResources) {
             <canvas width="400" height="400" id="graph"></canvas>
             <div id="node-host"></div>
             <script src="${paths.scriptVec2d}"></script>
+            <script src="${paths.scriptContextMenu}"></script>
             <script src="${paths.scriptCanvas}"></script>
             <script src="${paths.scriptNode}"></script>
 			<script src="${paths.scriptMain}"></script>

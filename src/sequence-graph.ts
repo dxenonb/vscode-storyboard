@@ -25,6 +25,7 @@ export default class SequenceGraph implements Disposable {
 
         this.resources = {
             scriptVec2d: this.mediaUri(['vec2d.js']),
+            scriptContextMenu: this.mediaUri(['context-menu.js']),
             scriptMain: this.mediaUri(['main.js']),
             scriptCanvas: this.mediaUri(['canvas.js']),
             scriptNode: this.mediaUri(['node.js']),

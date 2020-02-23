@@ -1,7 +1,7 @@
 * {
     margin: 0;
     padding: 0;
-    font-family: "Source Sans Pro", "Fira Sans", "Open Sans", Arial, Helvetica, sans-serif;
+    // font-family: "Source Sans Pro", "Fira Sans", "Open Sans", Arial, Helvetica, sans-serif;
     box-sizing: border-box;
 }
 
@@ -181,5 +181,36 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     &:focus {
         outline: none;
         border-color: var(--vscode-contrastActiveBorder);
+    }
+}
+
+.context-menu {
+    position: absolute;
+
+    padding: 4px 1px;
+
+    background: var(--vscode-menu-background);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 1.0);
+
+    cursor: default;
+    user-select: none;
+
+    hr {
+        border: none;
+        border-top: 1px solid var(--vscode-menu-separatorBackground);
+        margin: 4px 10px;
+        opacity: 0.5;
+    }
+}
+
+.context-item {
+    color: var(--vscode-menu-foreground);
+    margin: 3px 0;
+    padding: 3px 20px;
+    font-size: 13px;
+
+    &:hover {
+        color: var(--vscode-menu-selectionForeground);
+        background: var(--vscode-menu-selectionBackground);
     }
 }
