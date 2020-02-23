@@ -1,6 +1,9 @@
 export type NodeRef = string;
 
-export type Vec2d = { x: number, y: number };
+export interface BoardGraph<V extends Vec2d> {
+    nodes: Map<NodeRef, BoardNode<V>>;
+    edges: Array<{ start: NodeRef, end: NodeRef }>;
+}
 
 export interface BoardNode<V extends Vec2d> {
     ref: NodeRef;
@@ -12,7 +15,4 @@ export interface BoardNode<V extends Vec2d> {
     content: string;
 }
 
-export interface BoardGraph<V extends Vec2d> {
-    nodes: Map<NodeRef, BoardNode<V>>;
-    edges: Array<{ start: NodeRef, end: NodeRef }>;
-}
+export type Vec2d = { x: number, y: number };

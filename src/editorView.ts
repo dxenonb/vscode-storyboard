@@ -2,21 +2,21 @@ import { WebviewPanel, Uri, Webview } from "vscode";
 import { BoardGraph, Vec2d } from "./model";
 import { SeqGraphMessage } from "./messages";
 
-export type BoardViewResources = { [key: string]: Uri };
+export type EditorViewResources = { [key: string]: Uri };
 
-export class BoardEditor {
+export class EditorView {
 
     private panel: WebviewPanel;
-    private resources: BoardViewResources;
+    private resources: EditorViewResources;
 
     public constructor(
         panel: WebviewPanel,
-        resources: BoardViewResources,
+        resources: EditorViewResources,
     ) {
         this.panel = panel;
 
         this.resources = {};
-        Object.keys(resources).reduce((sum: BoardViewResources, cur) => {
+        Object.keys(resources).reduce((sum: EditorViewResources, cur) => {
             sum[cur] = panel.webview.asWebviewUri(resources[cur]);
             return sum;
         }, this.resources);
@@ -41,7 +41,7 @@ export class BoardEditor {
 
 // TODO: Don't use unsafe-inline for styles
 
-function getWebviewContent(webview: Webview, paths: BoardViewResources) {
+function getWebviewContent(webview: Webview, paths: EditorViewResources) {
 	return `
 		<!DOCTYPE html>
 		<html lang="en">

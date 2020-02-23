@@ -4,7 +4,7 @@ import { ExtensionContext, Uri, Disposable, TextEditor } from "vscode";
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { BoardEditor, BoardViewResources } from "./board-editor";
+import { EditorView, EditorViewResources } from "./editorView";
 import Commands from "./commands";
 import { BoardNode, Vec2d, BoardGraph } from "./model";
 
@@ -20,10 +20,10 @@ const MESSAGES = {
 
 export default class ExtensionState implements Disposable {
 
-    private editors: BoardEditor[];
-    private editorsByFile: { [path: string]: BoardEditor };
+    private editors: EditorView[];
+    private editorsByFile: { [path: string]: EditorView };
     private context: ExtensionContext;
-    private resources: BoardViewResources;
+    private resources: EditorViewResources;
     private localResourceRoots: Uri[];
     private disposables: Disposable[];
 
@@ -34,7 +34,7 @@ export default class ExtensionState implements Disposable {
 
         this.resources = {
             scriptVec2d: this.mediaUri(['vec2d.js']),
-            scriptContextMenu: this.mediaUri(['context-menu.js']),
+            scriptContextMenu: this.mediaUri(['contextMenu.js']),
             scriptMain: this.mediaUri(['main.js']),
             scriptCanvas: this.mediaUri(['canvas.js']),
             scriptNode: this.mediaUri(['node.js']),
@@ -66,7 +66,7 @@ export default class ExtensionState implements Disposable {
 			},
 		);
 
-        const editor = new BoardEditor(panel, this.resources);
+        const editor = new EditorView(panel, this.resources);
         this.editors.push(editor);
 
         return editor;
@@ -103,7 +103,7 @@ export default class ExtensionState implements Disposable {
 
     async restoreBoardEditor(panel: vscode.WebviewPanel, state: any) {
         // TODO: incorporate state
-        const editor = new BoardEditor(panel, this.resources);
+        const editor = new EditorView(panel, this.resources);
         return editor;
     }
 
