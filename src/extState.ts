@@ -6,15 +6,9 @@ import * as fs from 'fs';
 
 import { EditorView, EditorViewResources } from "./editorView";
 import { parseBoardJson } from "./model-utils";
+import LABELS from "./labels";
 
 const BOARD_WEBVIEW_ID = 'sequenceGraph.boardEditor';
-
-const MESSAGES = {
-    invalidFormat: 'Could not open the document. It is not a valid format for SequenceGraph.',
-    openFailed: 'Failed to open board from JSON file.',
-    onlyLocalFsSupported: 'Only local files are supported',
-    openFileToolTip: 'Open this file in the board editor?',
-};
 
 export default class ExtensionState implements Disposable {
 
@@ -71,7 +65,7 @@ export default class ExtensionState implements Disposable {
 
     public async openBoardEditor(uri: Uri) {
         if (uri.scheme !== 'file') {
-            vscode.window.showErrorMessage(MESSAGES.onlyLocalFsSupported);
+            vscode.window.showErrorMessage(LABELS.onlyLocalFsSupported);
             return null;
         }
         const fsPath = uri.fsPath;
@@ -79,7 +73,7 @@ export default class ExtensionState implements Disposable {
         try {
             content = await fs.promises.readFile(fsPath, { encoding: 'utf-8' });
         } catch {
-            vscode.window.showErrorMessage(MESSAGES.openFailed);
+            vscode.window.showErrorMessage(LABELS.openFailed);
             return null;
         }
         let document;
@@ -89,7 +83,7 @@ export default class ExtensionState implements Disposable {
                 return null;
             }
         } catch {
-            vscode.window.showErrorMessage(MESSAGES.invalidFormat);
+            vscode.window.showErrorMessage(LABELS.invalidFormat);
             return null;
         }
         const board = await this.createBoardEditor();
@@ -110,7 +104,7 @@ export default class ExtensionState implements Disposable {
                 const uri = document.uri;
                 const path = document.uri.fsPath;
                 if (uri.scheme === 'file' && path.endsWith('.seqgraph.json')) {
-                    const message = MESSAGES.openFileToolTip;
+                    const message = LABELS.openFileToolTip;
                     vscode.window.showInformationMessage(message, 'Open')
                         .then((action) => {
                             if (action === 'Open') {
