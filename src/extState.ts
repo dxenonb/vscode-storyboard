@@ -6,11 +6,10 @@ import * as fs from 'fs';
 
 import { EditorView, EditorViewResources } from "./editorView";
 import Commands from "./commands";
-import { BoardNode, Vec2d, BoardGraph } from "./model";
+import { BoardNode, Vec2d, BoardGraph, parseBoardJson } from "./model";
 
 const BOARD_WEBVIEW_ID = 'sequenceGraph.boardEditor';
 
-// TODO: lift all messages into constants
 const MESSAGES = {
     invalidFormat: 'Could not open the document. It is not a valid format for SequenceGraph.',
     openFailed: 'Failed to open board from JSON file.',
@@ -51,11 +50,10 @@ export default class ExtensionState implements Disposable {
                 new WebviewSerializer(this),
             ),
         );
-        this.registerCommands();
         this.registerListeners();
     }
 
-    private async createBoardEditor() {
+    public async createBoardEditor() {
 		const panel = vscode.window.createWebviewPanel(
 			BOARD_WEBVIEW_ID,
 			'new board',
@@ -72,15 +70,15 @@ export default class ExtensionState implements Disposable {
         return editor;
     }
 
-    private async openBoardEditor(uri: Uri) {
+    public async openBoardEditor(uri: Uri) {
         if (uri.scheme !== 'file') {
             vscode.window.showErrorMessage(MESSAGES.onlyLocalFsSupported);
             return null;
         }
-        const path = uri.fsPath;
+        const fsPath = uri.fsPath;
         let content;
         try {
-            content = await fs.promises.readFile(path, { encoding: 'utf-8' });
+            content = await fs.promises.readFile(fsPath, { encoding: 'utf-8' });
         } catch {
             vscode.window.showErrorMessage(MESSAGES.openFailed);
             return null;
@@ -95,9 +93,10 @@ export default class ExtensionState implements Disposable {
             vscode.window.showErrorMessage(MESSAGES.invalidFormat);
             return null;
         }
+        const name = path.basename(fsPath, path.extname(fsPath));
         const board = await this.createBoardEditor();
-        board.loadBoard(document);
-        this.editorsByFile[path] = board;
+        board.loadBoard(name, document);
+        this.editorsByFile[fsPath] = board;
         return board;
     }
 
@@ -105,17 +104,6 @@ export default class ExtensionState implements Disposable {
         // TODO: incorporate state
         const editor = new EditorView(panel, this.resources);
         return editor;
-    }
-
-    private registerCommands() {
-        this.disposables.push(
-            vscode.commands.registerCommand(Commands.CreateBoard, () => {
-                this.createBoardEditor();
-            }),
-            vscode.commands.registerTextEditorCommand(Commands.OpenBoard, (editor) => {
-                this.openBoardEditor(editor.document.uri);
-            }),
-        );
     }
 
     private registerListeners() {
@@ -162,36 +150,4 @@ class WebviewSerializer implements vscode.WebviewPanelSerializer {
         return this.sequenceGraph.restoreBoardEditor(panel, state)
             .then(() => { });
     }
-}
-
-function parseBoardJson(text: string): BoardGraph<Vec2d> | null {
-    let content: any;
-    try {
-        content = JSON.parse(text);
-    } catch {
-        return null;
-    }
-
-    if (!content || !content.nodes) {
-        return null;
-    }
-
-    const nodes = content.nodes;
-    for (const ref of Object.keys(nodes)) {
-        const node = nodes[ref];
-        if (!isNode(node)) {
-            return null;
-        }
-    }
-
-    return content as BoardGraph<Vec2d>;
-}
-
-function isNode(node: any): node is BoardNode<Vec2d> {
-    return true
-        && node.ref
-        && node.pos && node.pos.x && node.pos.y
-        && (node.color || node.color === null)
-        && ((node.size && node.size.x && node.size.y) || node.size === null)
-        && typeof node.header === 'string' && typeof node.content === 'string';
 }

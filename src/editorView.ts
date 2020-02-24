@@ -26,12 +26,13 @@ export class EditorView {
         panel.onDidDispose(() => this.handleDispose());
     }
 
-    public loadBoard(content: BoardGraph<Vec2d>) {
-        const message: SeqGraphMessage = {
+    public loadBoard(name: string, content: BoardGraph<Vec2d>) {
+        let message: SeqGraphMessage = {
             command: 'UpdateGraph',
             nodes: Object.values(content.nodes),
         };
         this.panel.webview.postMessage(message);
+        this.panel.title = name;
     }
 
     private handleDispose() {
