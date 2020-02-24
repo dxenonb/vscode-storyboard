@@ -1,12 +1,11 @@
 import * as vscode from "vscode";
-import { ExtensionContext, Uri, Disposable, TextEditor } from "vscode";
+import { ExtensionContext, Uri, Disposable } from "vscode";
 
 import * as path from 'path';
 import * as fs from 'fs';
 
 import { EditorView, EditorViewResources } from "./editorView";
-import Commands from "./commands";
-import { BoardNode, Vec2d, BoardGraph, parseBoardJson } from "./model";
+import { parseBoardJson } from "./model-utils";
 
 const BOARD_WEBVIEW_ID = 'sequenceGraph.boardEditor';
 
@@ -93,9 +92,8 @@ export default class ExtensionState implements Disposable {
             vscode.window.showErrorMessage(MESSAGES.invalidFormat);
             return null;
         }
-        const name = path.basename(fsPath, path.extname(fsPath));
         const board = await this.createBoardEditor();
-        board.loadBoard(name, document);
+        board.loadBoard(fsPath, document);
         this.editorsByFile[fsPath] = board;
         return board;
     }

@@ -7,6 +7,9 @@ declare global {
     };
 
     type SeqGraphMessage = Backend.SeqGraphMessage;
+    type UpdateFilePath = Backend.UpdateFilePath;
+    type UpdateGraph = Backend.UpdateGraph;
+
     type IncomingBoardNode = Backend.BoardNode<Backend.Vec2d>;
 
     type NodeRef = Backend.NodeRef;

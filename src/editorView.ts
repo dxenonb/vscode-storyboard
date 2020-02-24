@@ -1,8 +1,15 @@
 import { WebviewPanel, Uri, Webview } from "vscode";
-import { BoardGraph, Vec2d } from "./model";
-import { SeqGraphMessage } from "./messages";
+import { BoardGraph, Vec2d } from "./model-types";
+import { SeqGraphMessage, UpdateTitle } from "./messages";
 
 export type EditorViewResources = { [key: string]: Uri };
+
+const HANDLERS_BY_COMMAND: { [command: string]: string | undefined } = [
+    'UpdateTitle',
+].reduce(
+    (sum, command) => Object.assign(sum, { [command]: `handleMessage${command}` }),
+    {},
+);
 
 export class EditorView {
 
@@ -23,16 +30,43 @@ export class EditorView {
 
         panel.webview.html = getWebviewContent(panel.webview, this.resources);
 
+        panel.webview.onDidReceiveMessage(
+            (message) => this.handleWebviewMessage(message)
+        );
+
         panel.onDidDispose(() => this.handleDispose());
     }
 
-    public loadBoard(name: string, content: BoardGraph<Vec2d>) {
-        let message: SeqGraphMessage = {
+    public loadBoard(fsPath: string, content: BoardGraph<Vec2d>) {
+        // We may need to defer this based on webview visibility if we have
+        // subtle issues (e.g. messages not being received)
+        this.sendWebview({
             command: 'UpdateGraph',
             nodes: Object.values(content.nodes),
-        };
-        this.panel.webview.postMessage(message);
-        this.panel.title = name;
+        });
+        this.sendWebview({
+            command: 'UpdateFilePath',
+            fsPath,
+        });
+    }
+
+    private handleWebviewMessage(message: SeqGraphMessage) {
+        const command = message.command;
+        const handler = HANDLERS_BY_COMMAND[command];
+        if (handler) {
+            (this as any)[handler](message);
+        } else {
+            // TODO: Log that the webview sent an unknown message
+            console.error('Received unknown message from webview:', message);
+        }
+    }
+
+    private handleMessageUpdateTitle(message: UpdateTitle) {
+        this.panel.title = message.title;
+    }
+
+    private sendWebview(message: SeqGraphMessage): Thenable<boolean> {
+        return this.panel.webview.postMessage(message);
     }
 
     private handleDispose() {

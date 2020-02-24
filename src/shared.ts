@@ -1,2 +1,2 @@
 export * from './messages';
-export * from './model';
+export * from './model-types';

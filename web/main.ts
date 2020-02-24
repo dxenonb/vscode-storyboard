@@ -244,9 +244,14 @@ class BoardManager {
     postMessage(_: SeqGraphMessage) { }
 
     receiveBackendMessage(message: SeqGraphMessage) {
-        if (message.command !== 'UpdateGraph') {
-            return;
+        if (message.command === 'UpdateGraph') {
+            this.handleMessageUpdateGraph(message);
+        } else if (message.command === 'UpdateFilePath') {
+            this.handleMessageUpdateFilePath(message);
         }
+    }
+
+    handleMessageUpdateGraph(message: UpdateGraph) {
         for (const naked of message.nodes) {
             const node = hydrateBoardNode(naked);
             this.graph.nodes.set(node.ref, node);
@@ -261,6 +266,32 @@ class BoardManager {
             this.graph.nodes.values(),
             (node: BoardNode) => node.ref,
         );
+    }
+
+    handleMessageUpdateFilePath(message: UpdateFilePath) {
+        // TODO: Save the path to the webview state
+        // TODO: We should really work on packaging so we can use `path` utils
+        const { fsPath } = message;
+        if (fsPath.length === 0) {
+            this.postMessage({
+                command: 'UpdateTitle',
+                title: 'unknown (board)',
+            });
+            return;
+        }
+        const separator = !!navigator.userAgent.match(/Win(?:32|64);/)
+            ? '\\'
+            : '/';
+        const baseNameIndex = fsPath.lastIndexOf(separator);
+        let baseName = baseNameIndex !== -1
+            ? fsPath.slice(baseNameIndex + 1)
+            : fsPath;
+        baseName = baseName.replace('.seqgraph.json', '');
+        const prettyName = `${baseName} (board)`;
+        this.postMessage({
+            command: 'UpdateTitle',
+            title: prettyName,
+        });
     }
 }
 

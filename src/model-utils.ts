@@ -1,21 +1,7 @@
-export type NodeRef = string;
+// This module is separate from the types so the frontend can depend on the
+// import-less shared.d.ts (which only pulls in the types)
 
-export interface BoardGraph<V extends Vec2d> {
-    nodes: Map<NodeRef, BoardNode<V>>;
-    edges: Array<{ start: NodeRef, end: NodeRef }>;
-}
-
-export interface BoardNode<V extends Vec2d> {
-    ref: NodeRef;
-    pos: V;
-    color: string | null;
-    size: V | null;
-
-    header: string;
-    content: string;
-}
-
-export type Vec2d = { x: number, y: number };
+import { BoardGraph, Vec2d, BoardNode } from "./model-types";
 
 export function parseBoardJson(text: string): BoardGraph<Vec2d> | null {
     let content: any;
