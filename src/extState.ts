@@ -82,7 +82,8 @@ export default class ExtensionState implements Disposable {
             if (!document) {
                 return null;
             }
-        } catch {
+        } catch (e) {
+            console.log('got exception while opening:', e);
             vscode.window.showErrorMessage(LABELS.invalidFormat);
             return null;
         }

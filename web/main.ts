@@ -195,10 +195,10 @@ class BoardManager {
             };
         } else if (message.kind === 'UpdateContent') {
             this.updateNode(message.node, 'content', message.content);
-            // TODO: Save
+            this.saveNode(message.node);
         } else if (message.kind === 'UpdateHeader') {
             this.updateNode(message.node, 'header', message.content);
-            // TODO: Save
+            this.saveNode(message.node);
         } else if (message.kind === 'SelectCanvas') {
             this.cancelAction();
             // TODO: Drag canvas
@@ -207,7 +207,7 @@ class BoardManager {
                 return;
             }
             this.cancelAction();
-            // TODO: Save new position
+            this.saveNode(message.node);
         }
     }
 
@@ -241,9 +241,19 @@ class BoardManager {
         this.listenDrag(false);
     }
 
+    // TODO: Better encapsulate things so that this always gets called
+    saveNode(ref: NodeRef) {
+        const node = this.graph.nodes.get(ref)!;
+        this.postMessage({
+            command: 'UpdateGraph',
+            nodes: [node],
+        });
+    }
+
     postMessage(_: SeqGraphMessage) { }
 
     receiveBackendMessage(message: SeqGraphMessage) {
+        console.log('Got backend message:', message);
         if (message.command === 'UpdateGraph') {
             this.handleMessageUpdateGraph(message);
         } else if (message.command === 'UpdateFilePath') {

@@ -1,26 +1,47 @@
+import * as vscode from "vscode";
 import { WebviewPanel, Uri, Webview } from "vscode";
 import { BoardGraph, Vec2d } from "./model-types";
-import { SeqGraphMessage, UpdateTitle } from "./messages";
+import { SeqGraphMessage, UpdateTitle, UpdateGraph } from "./messages";
+import { promises as fs } from "fs";
+import LABELS from "./labels";
 
 export type EditorViewResources = { [key: string]: Uri };
 
 const HANDLERS_BY_COMMAND: { [command: string]: string | undefined } = [
     'UpdateTitle',
+    'UpdateGraph',
+    'EditorViewReady',
 ].reduce(
     (sum, command) => Object.assign(sum, { [command]: `handleMessage${command}` }),
     {},
 );
+
+const AUTOSAVE_MS = 3000;
+const MAX_AUTOSAVE_MS = 10000;
 
 export class EditorView {
 
     private panel: WebviewPanel;
     private resources: EditorViewResources;
 
+    private fsPath: string | null;
+    private graph: BoardGraph<Vec2d>;
+    private autosaveTimeout: NodeJS.Timeout | null;
+    private maxAutosaveTimeout: NodeJS.Timeout | null;
+
+    private saveCount: number;
+
     public constructor(
         panel: WebviewPanel,
         resources: EditorViewResources,
     ) {
         this.panel = panel;
+
+        this.graph = { nodes: new Map(), edges: [] };
+        this.autosaveTimeout = null;
+        this.maxAutosaveTimeout = null;
+        this.fsPath = null;
+        this.saveCount = 0;
 
         this.resources = {};
         Object.keys(resources).reduce((sum: EditorViewResources, cur) => {
@@ -37,12 +58,14 @@ export class EditorView {
         panel.onDidDispose(() => this.handleDispose());
     }
 
-    public loadBoard(fsPath: string, content: BoardGraph<Vec2d>) {
+    public loadBoard(fsPath: string, graph: BoardGraph<Vec2d>) {
         // We may need to defer this based on webview visibility if we have
         // subtle issues (e.g. messages not being received)
+        this.graph = graph;
+        this.fsPath = fsPath;
         this.sendWebview({
             command: 'UpdateGraph',
-            nodes: Object.values(content.nodes),
+            nodes: Array.from(graph.nodes.values()),
         });
         this.sendWebview({
             command: 'UpdateFilePath',
@@ -54,24 +77,95 @@ export class EditorView {
         const command = message.command;
         const handler = HANDLERS_BY_COMMAND[command];
         if (handler) {
-            (this as any)[handler](message);
+            try {
+                (this as any)[handler](message);
+            } catch (e) {
+                console.error('got exception while handling message:', e);
+            }
         } else {
             // TODO: Log that the webview sent an unknown message
             console.error('Received unknown message from webview:', message);
         }
     }
 
+    private handleMessageUpdateGraph(message: UpdateGraph) {
+        for (const node of message.nodes) {
+            this.graph.nodes.set(node.ref, node);
+        }
+        this.recordChange();
+    }
+
     private handleMessageUpdateTitle(message: UpdateTitle) {
         this.panel.title = message.title;
     }
 
-    private sendWebview(message: SeqGraphMessage): Thenable<boolean> {
-        return this.panel.webview.postMessage(message);
+    private sendWebview(message: SeqGraphMessage): void {
+        this.panel.webview.postMessage(message);
+        return;
+    }
+
+    private recordChange() {
+        if (this.fsPath) {
+
+            // defer autosave until the user stops making changes
+            if (this.autosaveTimeout !== null) {
+                clearTimeout(this.autosaveTimeout);
+            }
+            this.autosaveTimeout = setTimeout(() => {
+                this.save();
+                this.autosaveTimeout = null;
+            }, AUTOSAVE_MS);
+
+            // make sure there is a max autosave timeout
+            if (this.maxAutosaveTimeout === null) {
+                this.maxAutosaveTimeout = setTimeout(() => {
+                    this.save();
+                    this.maxAutosaveTimeout = null;
+                    // whatever other save we are waiting on is now pointless
+                    if (this.autosaveTimeout !== null) {
+                        clearTimeout(this.autosaveTimeout);
+                        this.autosaveTimeout = null;
+                    }
+                }, MAX_AUTOSAVE_MS);
+            }
+        }
+    }
+
+    private async save(): Promise<void> {
+        this.saveCount += 1;
+        console.log('Save count:', this.saveCount);
+        if (this.fsPath) {
+            const data = JSON.stringify(this.graph, jsonReplacer);
+            fs.writeFile(this.fsPath, data, { encoding: 'utf-8' });
+            return;
+        }
+
+        const filters = {
+            'Board': ['.sequencegraph', '.seqgraph', '.board', '.json'],
+        };
+        vscode.window.showSaveDialog({ filters })
+            .then((path) => {
+                if (!path) {
+                    return;
+                } else if (path.scheme !== 'file') {
+                    vscode.window.showErrorMessage(LABELS.onlyLocalFsSupported);
+                    return;
+                }
+                this.fsPath = path.fsPath;
+                this.save();
+            });
     }
 
     private handleDispose() {
 
     }
+}
+
+function jsonReplacer(key: string, value: any) {
+    if (key === 'nodes' && value instanceof Map) {
+        return Array.from(value.values());
+    }
+    return value;
 }
 
 // TODO: Don't use unsafe-inline for styles
