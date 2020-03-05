@@ -105,35 +105,41 @@ export class EditorView {
     }
 
     private recordChange() {
-        if (this.fsPath) {
+        if (!this.fsPath) {
+            return;
+        }
 
-            // defer autosave until the user stops making changes
-            if (this.autosaveTimeout !== null) {
-                clearTimeout(this.autosaveTimeout);
-            }
-            this.autosaveTimeout = setTimeout(() => {
+        // defer autosave until the user stops making changes
+        if (this.autosaveTimeout !== null) {
+            clearTimeout(this.autosaveTimeout);
+        }
+        this.autosaveTimeout = setTimeout(() => {
+            this.save();
+        }, AUTOSAVE_MS);
+
+        // make sure there is a max autosave timeout
+        if (this.maxAutosaveTimeout === null) {
+            this.maxAutosaveTimeout = setTimeout(() => {
                 this.save();
-                this.autosaveTimeout = null;
-            }, AUTOSAVE_MS);
-
-            // make sure there is a max autosave timeout
-            if (this.maxAutosaveTimeout === null) {
-                this.maxAutosaveTimeout = setTimeout(() => {
-                    this.save();
-                    this.maxAutosaveTimeout = null;
-                    // whatever other save we are waiting on is now pointless
-                    if (this.autosaveTimeout !== null) {
-                        clearTimeout(this.autosaveTimeout);
-                        this.autosaveTimeout = null;
-                    }
-                }, MAX_AUTOSAVE_MS);
-            }
+            }, MAX_AUTOSAVE_MS);
         }
     }
 
     private async save(): Promise<void> {
+
         this.saveCount += 1;
         console.log('Save count:', this.saveCount);
+
+        // cancel save timers
+        if (this.autosaveTimeout !== null) {
+            clearTimeout(this.autosaveTimeout);
+            this.autosaveTimeout = null;
+        }
+        if (this.maxAutosaveTimeout !== null) {
+            clearTimeout(this.maxAutosaveTimeout);
+            this.maxAutosaveTimeout = null;
+        }
+
         if (this.fsPath) {
             const data = JSON.stringify(this.graph, jsonReplacer);
             fs.writeFile(this.fsPath, data, { encoding: 'utf-8' });
@@ -157,7 +163,9 @@ export class EditorView {
     }
 
     private handleDispose() {
-
+        if (this.fsPath) {
+            this.save();
+        }
     }
 }
 
