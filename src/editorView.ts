@@ -176,6 +176,10 @@ export class EditorView {
                     return;
                 }
                 this.fsPath = path.fsPath;
+                this.sendWebview({
+                    command: 'UpdateFilePath',
+                    fsPath: path.fsPath,
+                });
                 this.save();
             });
     }

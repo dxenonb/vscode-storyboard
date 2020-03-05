@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import { EditorView, EditorViewResources } from "./editorView";
 import { parseBoardJson } from "./model-utils";
 import LABELS from "./labels";
+import { PersistentEditorState } from "./model-types";
 
 const BOARD_WEBVIEW_ID = 'sequenceGraph.boardEditor';
 
@@ -46,8 +47,9 @@ export default class ExtensionState implements Disposable {
         this.registerListeners();
     }
 
-    public async createBoardEditor() {
-		const panel = vscode.window.createWebviewPanel(
+    public async createBoardEditor(panel?: vscode.WebviewPanel) {
+        panel = panel || (
+            vscode.window.createWebviewPanel(
 			BOARD_WEBVIEW_ID,
 			'new board',
 			vscode.ViewColumn.Active,
@@ -55,7 +57,7 @@ export default class ExtensionState implements Disposable {
 				enableScripts: true,
                 localResourceRoots: this.localResourceRoots,
 			},
-		);
+		));
 
         const editor = new EditorView(panel, this.resources);
         this.editors.push(editor);
@@ -63,7 +65,7 @@ export default class ExtensionState implements Disposable {
         return editor;
     }
 
-    public async openBoardEditor(uri: Uri) {
+    public async openBoardEditor(uri: Uri, panel?: vscode.WebviewPanel) {
         if (uri.scheme !== 'file') {
             vscode.window.showErrorMessage(LABELS.onlyLocalFsSupported);
             return null;
@@ -87,16 +89,22 @@ export default class ExtensionState implements Disposable {
             vscode.window.showErrorMessage(LABELS.invalidFormat);
             return null;
         }
-        const board = await this.createBoardEditor();
+        const board = await this.createBoardEditor(panel);
         board.loadBoard(fsPath, document);
         this.editorsByFile[fsPath] = board;
         return board;
     }
 
-    async restoreBoardEditor(panel: vscode.WebviewPanel, state: any) {
-        // TODO: incorporate state
-        const editor = new EditorView(panel, this.resources);
-        return editor;
+    async restoreBoardEditor(
+        panel: vscode.WebviewPanel,
+        state: PersistentEditorState | null,
+    ) {
+        if (state && state.isSaved) {
+            const uri = Uri.file(state.fsPath);
+            return this.openBoardEditor(uri, panel);
+        }
+        // TODO: load unsaved board
+        return this.createBoardEditor(panel);
     }
 
     private registerListeners() {

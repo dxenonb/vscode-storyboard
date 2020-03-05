@@ -1,7 +1,14 @@
 export type NodeRef = string;
 
-export interface PersistentEditorState {
+export type PersistentEditorState = EditorStateSaved | EditorStateUnsaved;
+
+export interface EditorStateSaved {
+    isSaved: true;
     fsPath: string;
+}
+
+export interface EditorStateUnsaved {
+    isSaved: false;
     graph: BoardGraph<Vec2d>;
 }
 

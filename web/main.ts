@@ -31,6 +31,7 @@ class IdAllocator {
 }
 
 class BoardManager {
+    private api: VsCodeApi;
     private nodeHost: HTMLElement;
     private canvasHost: HTMLElement;
     private canvasState: GraphCanvasState;
@@ -46,23 +47,25 @@ class BoardManager {
     private boardState: BoardState;
     private _idleState: BoardState;
 
-    static create(nodeHostId: string, graphId: string): BoardManager | null {
+    static create(api: VsCodeApi, nodeHostId: string, graphId: string): BoardManager | null {
         const nodeHost = document.getElementById(nodeHostId);
         const canvasHost = document.getElementById(graphId);
         const canvasState = initializeCanvas(graphId, { send }, { send });
 
         if (nodeHost && canvasHost && canvasState) {
-            return new BoardManager(nodeHost, canvasHost, canvasState);
+            return new BoardManager(api, nodeHost, canvasHost, canvasState);
         } else {
             return null;
         }
     }
 
     constructor(
+        api: VsCodeApi,
         nodeHost: HTMLElement,
         canvasHost: HTMLElement,
         canvasState: GraphCanvasState,
     ) {
+        this.api = api;
         this.nodeHost = nodeHost;
         this.canvasHost = canvasHost;
         this.canvasState = canvasState;
@@ -250,7 +253,9 @@ class BoardManager {
         });
     }
 
-    postMessage(_: SeqGraphMessage) { }
+    postMessage(message: SeqGraphMessage) {
+        this.api.postMessage(message);
+    }
 
     receiveBackendMessage(message: SeqGraphMessage) {
         console.log('Got backend message:', message);
@@ -279,7 +284,6 @@ class BoardManager {
     }
 
     handleMessageUpdateFilePath(message: UpdateFilePath) {
-        // TODO: Save the path to the webview state
         // TODO: We should really work on packaging so we can use `path` utils
         const { fsPath } = message;
         if (fsPath.length === 0) {
@@ -302,8 +306,22 @@ class BoardManager {
             command: 'UpdateTitle',
             title: prettyName,
         });
+        this.api.setState({
+            isSaved: true,
+            fsPath,
+        });
     }
 }
+
+// TODO: Use this for saving unsaved boards to the PersistentBoardState
+// function instrumentNodes(map: Map<NodeRef, BoardNode>, api: VsCodeApi) {
+//     map.set = function (prop, value) {
+//         Map.prototype.set.call(this, prop, value);
+//         // TODO: Serialize nodes... again... (should change the format I
+//         // suppose since we have to do this everywhere)
+//         return this;
+//     };
+// }
 
 function hydrateBoardNode(node: IncomingBoardNode): BoardNode {
     node.pos = Vec2d.wrap(node.pos);
@@ -315,10 +333,9 @@ function hydrateBoardNode(node: IncomingBoardNode): BoardNode {
 // (we must not let the webview panel fall into the global scope)
 (() => {
     const api = acquireVsCodeApi();
-    const manager = BoardManager.create('node-host', 'graph');
+    const manager = BoardManager.create(api, 'node-host', 'graph');
 
     if (manager) {
-        manager.postMessage = api.postMessage;
         window.addEventListener('message', (event) => {
             const message: SeqGraphMessage = event.data;
             manager.receiveBackendMessage(message);

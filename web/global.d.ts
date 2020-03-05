@@ -2,9 +2,15 @@ import * as Backend from "../out/shared";
 
 declare global {
 
-    function acquireVsCodeApi(): {
-        postMessage(x: SeqGraphMessage): void
-    };
+    interface VsCodeApi {
+        postMessage(x: SeqGraphMessage): void;
+        setState(state: PersistentEditorState): void;
+        getState(): PersistentEditorState | null;
+    }
+
+    function acquireVsCodeApi(): VsCodeApi;
+
+    type PersistentEditorState = Backend.PersistentEditorState;
 
     type SeqGraphMessage = Backend.SeqGraphMessage;
     type UpdateFilePath = Backend.UpdateFilePath;
