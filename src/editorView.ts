@@ -20,7 +20,6 @@ const AUTOSAVE_MS = 3000;
 const MAX_AUTOSAVE_MS = 10000;
 
 export class EditorView {
-
     private panel: WebviewPanel;
     private resources: EditorViewResources;
 
@@ -30,6 +29,7 @@ export class EditorView {
     private maxAutosaveTimeout: NodeJS.Timeout | null;
 
     private saveCount: number;
+    private wasVisible: boolean;
 
     public constructor(
         panel: WebviewPanel,
@@ -42,6 +42,7 @@ export class EditorView {
         this.maxAutosaveTimeout = null;
         this.fsPath = null;
         this.saveCount = 0;
+        this.wasVisible = true;
 
         this.resources = {};
         Object.keys(resources).reduce((sum: EditorViewResources, cur) => {
@@ -53,6 +54,10 @@ export class EditorView {
 
         panel.webview.onDidReceiveMessage(
             (message) => this.handleWebviewMessage(message)
+        );
+
+        panel.onDidChangeViewState(
+            (event) => this.handleDidChangeViewState(event)
         );
 
         panel.onDidDispose(() => this.handleDispose());
@@ -97,6 +102,19 @@ export class EditorView {
 
     private handleMessageUpdateTitle(message: UpdateTitle) {
         this.panel.title = message.title;
+    }
+
+    private handleDidChangeViewState(
+        event: vscode.WebviewPanelOnDidChangeViewStateEvent
+    ): any {
+        const visible = event.webviewPanel.visible;
+        if (!this.wasVisible && visible) {
+            this.sendWebview({
+                command: 'UpdateGraph',
+                nodes: Array.from(this.graph.nodes.values()),
+            });
+        }
+        this.wasVisible = visible;
     }
 
     private sendWebview(message: SeqGraphMessage): void {
