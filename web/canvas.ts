@@ -1,21 +1,3 @@
-/*
-const x = {
-    "graph": "Textured Quad",
-    "type": "Material",
-    "inputs": [
-        {
-            "name": "pos"
-        },
-        {
-            "name": "ambient_light"
-        },
-        {
-            "name": "ambient_light"
-        }
-    ]
-}
-*/
-
 interface GraphCanvasState {
     ctx: CanvasRenderingContext2D;
     connections: Array<Connection>;
