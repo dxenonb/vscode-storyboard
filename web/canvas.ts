@@ -163,13 +163,6 @@ const nodeSocketRect = (nodeRef: string, socket: string) => {
     return sElement && sElement.getBoundingClientRect();
 };
 
-const updateConnections = (state: GraphCanvasState, connections: Connection[], floatingWire: FloatingWire | null, translation: { x: number, y: number }, scale: number) => {
-    state.connections = connections;
-    state.floatingWire = floatingWire;
-    state.translation = translation;
-    state.scale = scale;
-};
-
 const drawGrid = (ctx: CanvasRenderingContext2D, translation: { x: number; y: number; }, scale: number) => {
     const strokeStyle = "rgb(124, 109, 96)";
     // width of major and minor lines
