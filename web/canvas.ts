@@ -35,6 +35,120 @@ interface FloatingWire {
     mousePos: Vec2d;
 }
 
+/// Renders the gridlines and wires for the sequence graph.
+class GraphRenderer {
+
+    private state: GraphCanvasState;
+
+    constructor(
+        ctx: CanvasRenderingContext2D,
+        handleMouseDown: (arg0: [number, number]) => void,
+        handleScroll: (arg0: number) => void,
+    ) {
+
+        const connections: Connection[] = [];
+        const floatingWire = null;
+        const translation = { x: 0, y: 0 };
+        const scale = 1.0;
+        const state: GraphCanvasState = { ctx, connections, floatingWire, translation, scale };
+
+        const canvas = ctx.canvas;
+        window.addEventListener('resize', () => this.fitCanvasToWindow());
+
+        canvas.addEventListener('mousedown', (e) => {
+            handleMouseDown([e.clientX, e.clientY]);
+        });
+
+        window.addEventListener('wheel', (e) => {
+            handleScroll(e.deltaY);
+        });
+
+        this.state = state;
+
+        this.fitCanvasToWindow();
+    }
+
+    fitCanvasToWindow() {
+        const canvas = this.state.ctx.canvas;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        this.render();
+    }
+
+    render() {
+        const state = this.state;
+
+        requestAnimationFrame(() => {
+            const { ctx, connections, floatingWire, translation, scale } = state;
+            const resolved = connections.map(({ start: [start, output], end: [end, input]}) => {
+                const first = nodeSocketRect(start, output);
+                const second = nodeSocketRect(end, input);
+                if (!first || !second) {
+                    return { start: null, end: null };
+                }
+                return {
+                    start: { x: first.right, y: (first.top + first.bottom) / 2.0 },
+                    end: { x: second.left, y: (second.top + second.bottom) / 2.0 },
+                };
+            });
+
+            ctx.save();
+
+            // TODO: everything will need to handle DPI and transformations
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            drawGrid(ctx, translation, scale);
+
+            const flair = 100 * scale;
+
+            for (const { start, end } of resolved) {
+                if (start === null || end === null) {
+                    continue;
+                }
+
+                const cp1 = { x: start.x + flair, y: start.y };
+                const cp2 = { x: end.x - flair, y: end.y };
+
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+
+                ctx.strokeStyle = "rgb(209, 101, 39)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            if (floatingWire !== null) {
+                const { source: [node, socket], isByHead, mousePos } = floatingWire;
+                const rect = nodeSocketRect(node, socket);
+                if (rect !== null) {
+                    const y = (rect.top + rect.bottom) / 2.0;
+                    // if isByHead, then we are dragging from an input, else from an output
+                    const origin = isByHead ? { x: rect.right, y } : { x: rect.left, y };
+
+                    const flipFactor = isByHead ? 1 : -1;
+                    const start = origin;
+                    const end = mousePos;
+
+                    const cp1 = { x: start.x + flair * flipFactor, y: start.y };
+                    const cp2 = { x: end.x - flair * flipFactor, y: end.y };
+
+                    ctx.beginPath();
+                    ctx.moveTo(start.x, start.y);
+                    ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
+
+                    ctx.strokeStyle = "rgb(209, 101, 39)";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+
+            ctx.restore();
+        });
+    }
+}
+
 const nodeRefId = (nodeRef: string) => 'node-ref-' + nodeRef;
 
 const nodeSocketRect = (nodeRef: string, socket: string) => {
@@ -47,47 +161,6 @@ const nodeSocketRect = (nodeRef: string, socket: string) => {
         `.node-io-item[data-socket="${socket}"] > .node-socket`
     );
     return sElement && sElement.getBoundingClientRect();
-};
-
-const resizeCanvas = (canvas: HTMLCanvasElement | null, state: GraphCanvasState) => () => {
-    if (!canvas) {
-        return;
-    }
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    redraw(state);
-};
-
-const initializeCanvas = (id: string, canvasMouseDownPort: { send: (arg0: number[]) => void; }, scrollAmountPort: { send: (arg0: number) => void; }) => {
-    const canvas = document.getElementById(id);
-    if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
-        return null;
-    }
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-        return null;
-    }
-
-    const connections: Connection[] = [];
-    const floatingWire = null;
-    const translation = { x: 0, y: 0 };
-    const scale = 1.0;
-    const state: GraphCanvasState = { ctx, connections, floatingWire, translation, scale };
-
-    const resizeCb = resizeCanvas(canvas, state);
-    window.addEventListener('resize', resizeCb);
-    resizeCb();
-
-    canvas.addEventListener('mousedown', (e) => {
-        canvasMouseDownPort.send([e.clientX, e.clientY]);
-    });
-
-    window.addEventListener('wheel', (e) => {
-        scrollAmountPort.send(e.deltaY);
-    });
-
-    return state;
 };
 
 const updateConnections = (state: GraphCanvasState, connections: Connection[], floatingWire: FloatingWire | null, translation: { x: number, y: number }, scale: number) => {
@@ -166,73 +239,4 @@ const drawGridLines = (ctx: CanvasRenderingContext2D, isVert: boolean, bounds: {
 
         i += spacing;
     }
-};
-
-const redraw = (state: GraphCanvasState) => {
-    requestAnimationFrame(() => {
-        const { ctx, connections, floatingWire, translation, scale } = state;
-        const resolved = connections.map(({ start: [start, output], end: [end, input]}) => {
-            const first = nodeSocketRect(start, output);
-            const second = nodeSocketRect(end, input);
-            if (!first || !second) {
-                return { start: null, end: null };
-            }
-            return {
-                start: { x: first.right, y: (first.top + first.bottom) / 2.0 },
-                end: { x: second.left, y: (second.top + second.bottom) / 2.0 },
-            };
-        });
-
-        ctx.save();
-
-        // TODO: everything will need to handle DPI and transformations
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-        drawGrid(ctx, translation, scale);
-
-        const flair = 100 * scale;
-
-        for (const { start, end } of resolved) {
-            if (start === null || end === null) {
-                continue;
-            }
-
-            const cp1 = { x: start.x + flair, y: start.y };
-            const cp2 = { x: end.x - flair, y: end.y };
-
-            ctx.beginPath();
-            ctx.moveTo(start.x, start.y);
-            ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-
-            ctx.strokeStyle = "rgb(209, 101, 39)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        if (floatingWire !== null) {
-            const { source: [node, socket], isByHead, mousePos } = floatingWire;
-            const rect = nodeSocketRect(node, socket);
-            if (rect !== null) {
-                const y = (rect.top + rect.bottom) / 2.0;
-                // if isByHead, then we are dragging from an input, else from an output
-                const origin = isByHead ? { x: rect.right, y } : { x: rect.left, y };
-
-                const flipFactor = isByHead ? 1 : -1;
-                const start = origin;
-                const end = mousePos;
-
-                const cp1 = { x: start.x + flair * flipFactor, y: start.y };
-                const cp2 = { x: end.x - flair * flipFactor, y: end.y };
-
-                ctx.beginPath();
-                ctx.moveTo(start.x, start.y);
-                ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-
-                ctx.strokeStyle = "rgb(209, 101, 39)";
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-        }
-
-        ctx.restore();
-    });
 };

@@ -1,5 +1,3 @@
-const send = () => { };
-
 const MAIN_CONTEXT_MENU_OPTIONS = [
     { action: 'createNode', text: 'New Node', aliases: null },
 ];
@@ -34,7 +32,7 @@ class BoardManager {
     private api: VsCodeApi;
     private nodeHost: HTMLElement;
     private canvasHost: HTMLElement;
-    private canvasState: GraphCanvasState;
+    private graphRenderer: GraphRenderer;
     private contextMenu: ContextMenu;
 
     private renderedNodes: Map<NodeRef, RawNodeWrapper>;
@@ -50,10 +48,9 @@ class BoardManager {
     static create(api: VsCodeApi, nodeHostId: string, graphId: string): BoardManager | null {
         const nodeHost = document.getElementById(nodeHostId);
         const canvasHost = document.getElementById(graphId);
-        const canvasState = initializeCanvas(graphId, { send }, { send });
 
-        if (nodeHost && canvasHost && canvasState) {
-            return new BoardManager(api, nodeHost, canvasHost, canvasState);
+        if (nodeHost && canvasHost instanceof HTMLCanvasElement) {
+            return new BoardManager(api, nodeHost, canvasHost);
         } else {
             return null;
         }
@@ -62,13 +59,21 @@ class BoardManager {
     constructor(
         api: VsCodeApi,
         nodeHost: HTMLElement,
-        canvasHost: HTMLElement,
-        canvasState: GraphCanvasState,
+        canvasHost: HTMLCanvasElement,
     ) {
         this.api = api;
         this.nodeHost = nodeHost;
         this.canvasHost = canvasHost;
-        this.canvasState = canvasState;
+
+        const ctx = canvasHost.getContext('2d');
+        if (ctx === null) {
+            throw new Error('Very unlikely to happen... ctx was null!');
+        }
+        this.graphRenderer = new GraphRenderer(
+            ctx,
+            (pos) => this.handleMouseDown(pos),
+            (amt) => this.handleScroll(amt),
+        );
         this.contextMenu = new ContextMenu();
 
         this.renderedNodes = new Map();
@@ -115,7 +120,7 @@ class BoardManager {
     }
 
     initialDraw() {
-        redraw(this.canvasState);
+        this.graphRenderer.render();
     }
 
     createNode(pos: Vec2d) {
@@ -220,6 +225,15 @@ class BoardManager {
             return;
         }
         window.addEventListener('mousemove', this.handleMouseMove);
+    }
+
+    // TODO: Change the type to Vec2d
+    handleMouseDown(arg: [number, number]) {
+        // TODO
+    }
+
+    handleScroll(amount: number) {
+        // TODO
     }
 
     handleMouseMove(event: MouseEvent) {
