@@ -16,7 +16,24 @@ const x = {
 }
 */
 
-// TODO: Taken from old elm codebase, not yet adapted
+interface GraphCanvasState {
+    ctx: CanvasRenderingContext2D;
+    connections: Array<Connection>;
+    floatingWire: FloatingWire | null;
+    translation: { x: number, y: number };
+    scale: number;
+}
+
+interface Connection {
+    start: NodeRef;
+    end: NodeRef;
+}
+
+interface FloatingWire {
+    source: NodeRef;
+    isByHead: boolean;
+    mousePos: Vec2d;
+}
 
 const nodeRefId = (nodeRef: string) => 'node-ref-' + nodeRef;
 
@@ -32,7 +49,7 @@ const nodeSocketRect = (nodeRef: string, socket: string) => {
     return sElement && sElement.getBoundingClientRect();
 };
 
-const resizeCanvas = (canvas: HTMLCanvasElement | null, state: { ctx: any; connections: any[]; floatingWire: null; translation: { x: number; y: number; }; scale: number; }) => () => {
+const resizeCanvas = (canvas: HTMLCanvasElement | null, state: GraphCanvasState) => () => {
     if (!canvas) {
         return;
     }
@@ -48,12 +65,15 @@ const initializeCanvas = (id: string, canvasMouseDownPort: { send: (arg0: number
         return null;
     }
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        return null;
+    }
 
-    const connections: never[] = [];
+    const connections: Connection[] = [];
     const floatingWire = null;
     const translation = { x: 0, y: 0 };
     const scale = 1.0;
-    const state = { ctx, connections, floatingWire, translation, scale };
+    const state: GraphCanvasState = { ctx, connections, floatingWire, translation, scale };
 
     const resizeCb = resizeCanvas(canvas, state);
     window.addEventListener('resize', resizeCb);
@@ -70,7 +90,7 @@ const initializeCanvas = (id: string, canvasMouseDownPort: { send: (arg0: number
     return state;
 };
 
-const updateConnections = (state: { connections: any; floatingWire: any; translation: any; scale: any; }, connections: any, floatingWire: any, translation: any, scale: any) => {
+const updateConnections = (state: GraphCanvasState, connections: Connection[], floatingWire: FloatingWire | null, translation: { x: number, y: number }, scale: number) => {
     state.connections = connections;
     state.floatingWire = floatingWire;
     state.translation = translation;
@@ -124,7 +144,7 @@ const drawGrid = (ctx: CanvasRenderingContext2D, translation: { x: number; y: nu
 // Draw grid lines for one axis.
 //
 // isVert - whether these lines run vertically or not
-const drawGridLines = (ctx: CanvasRenderingContext2D, isVert: boolean, bounds: { start: any; end: any; }, crossBounds: { start: any; end: any; }, spacing: number, majorFreq: number, widths: { major: any; minor: any; }) => {
+const drawGridLines = (ctx: CanvasRenderingContext2D, isVert: boolean, bounds: { start: number; end: number; }, crossBounds: { start: number; end: number; }, spacing: number, majorFreq: number, widths: { major: number; minor: number; }) => {
     const { major: majorWidth, minor: minorWidth } = widths;
     const { start, end } = bounds;
 
@@ -148,14 +168,6 @@ const drawGridLines = (ctx: CanvasRenderingContext2D, isVert: boolean, bounds: {
     }
 };
 
-interface GraphCanvasState {
-    ctx: any;
-    connections: Array<{start: [string, string], end: [string, string]}>;
-    floatingWire: any;
-    translation: any;
-    scale: any;
-}
-
 const redraw = (state: GraphCanvasState) => {
     requestAnimationFrame(() => {
         const { ctx, connections, floatingWire, translation, scale } = state;
@@ -177,12 +189,13 @@ const redraw = (state: GraphCanvasState) => {
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
         drawGrid(ctx, translation, scale);
 
+        const flair = 100 * scale;
+
         for (const { start, end } of resolved) {
             if (start === null || end === null) {
                 continue;
             }
 
-            const flair = 100 * scale;
             const cp1 = { x: start.x + flair, y: start.y };
             const cp2 = { x: end.x - flair, y: end.y };
 
@@ -207,7 +220,6 @@ const redraw = (state: GraphCanvasState) => {
                 const start = origin;
                 const end = mousePos;
 
-                const flair = 100 * scale;
                 const cp1 = { x: start.x + flair * flipFactor, y: start.y };
                 const cp2 = { x: end.x - flair * flipFactor, y: end.y };
 
