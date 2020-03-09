@@ -17,16 +17,28 @@ interface FloatingWire {
     mousePos: Vec2d;
 }
 
+interface GraphCanvasOptions {
+    wireColor: string;
+    gridColor: string;
+}
+
 /// Renders the gridlines and wires for the sequence graph.
 class GraphRenderer {
 
+    private options: GraphCanvasOptions;
     private state: GraphCanvasState;
 
     constructor(
         ctx: CanvasRenderingContext2D,
+        wireColor: string,
+        gridColor: string,
         handleMouseDown: (arg0: [number, number]) => void,
         handleScroll: (arg0: number) => void,
     ) {
+        this.options = {
+            wireColor,
+            gridColor,
+        };
 
         const connections: Connection[] = [];
         const floatingWire = null;
@@ -60,6 +72,7 @@ class GraphRenderer {
     }
 
     render() {
+        const options = this.options;
         const state = this.state;
 
         requestAnimationFrame(() => {
@@ -80,7 +93,7 @@ class GraphRenderer {
 
             // TODO: everything will need to handle DPI and transformations
             ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-            drawGrid(ctx, translation, scale);
+            drawGrid(this.state, this.options);
 
             const flair = 100 * scale;
 
@@ -96,7 +109,7 @@ class GraphRenderer {
                 ctx.moveTo(start.x, start.y);
                 ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
 
-                ctx.strokeStyle = "rgb(209, 101, 39)";
+                ctx.strokeStyle = options.wireColor;
                 ctx.lineWidth = 2;
                 ctx.stroke();
             }
@@ -120,7 +133,7 @@ class GraphRenderer {
                     ctx.moveTo(start.x, start.y);
                     ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
 
-                    ctx.strokeStyle = "rgb(209, 101, 39)";
+                    ctx.strokeStyle = options.wireColor;
                     ctx.lineWidth = 2;
                     ctx.stroke();
                 }
@@ -145,8 +158,8 @@ const nodeSocketRect = (nodeRef: string, isRightSocket: boolean) => {
     return sElement && sElement.getBoundingClientRect();
 };
 
-const drawGrid = (ctx: CanvasRenderingContext2D, translation: { x: number; y: number; }, scale: number) => {
-    const strokeStyle = "rgb(124, 109, 96)";
+const drawGrid = (state: GraphCanvasState, options: GraphCanvasOptions) => {
+    const strokeStyle = options.gridColor;
     // width of major and minor lines
     const majorWidth = 1.0;
     const minorWidth = 0.5;
@@ -154,6 +167,8 @@ const drawGrid = (ctx: CanvasRenderingContext2D, translation: { x: number; y: nu
     const gridSpacing = 25;
     // the nth grid line will be a major line
     const majorFrequency = 4;
+
+    const { ctx, translation, scale } = state;
 
     ctx.save();
 

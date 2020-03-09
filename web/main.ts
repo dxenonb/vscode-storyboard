@@ -69,11 +69,23 @@ class BoardManager {
         if (ctx === null) {
             throw new Error('Very unlikely to happen... ctx was null!');
         }
+
+        const wireColor = vsCodeCssVariable(
+            'gitDecoration-conflictingResourceForeground',
+            'rgb(17, 73, 146)',
+        );
+        const gridColor = vsCodeCssVariable(
+            'editorInfo-border', // not working?
+            'rgba(0, 0, 0, 0.5)'
+        );
         this.graphRenderer = new GraphRenderer(
             ctx,
+            wireColor,
+            gridColor,
             (pos) => this.handleMouseDown(pos),
             (amt) => this.handleScroll(amt),
         );
+
         this.contextMenu = new ContextMenu();
 
         this.renderedNodes = new Map();
@@ -356,6 +368,12 @@ function hydrateBoardNode(node: IncomingBoardNode): BoardNode {
     node.pos = Vec2d.wrap(node.pos);
     node.size = node.size && Vec2d.wrap(node.size);
     return node as BoardNode;
+}
+
+function vsCodeCssVariable(name: string, elseValue: string) {
+    const bodyStyle = getComputedStyle(document.body);
+    const property = `--vscode-${name}`;
+    return bodyStyle.getPropertyValue(property) || elseValue;
 }
 
 // use an IIFE to hide the manager from the global scope
