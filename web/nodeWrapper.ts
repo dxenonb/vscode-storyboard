@@ -25,6 +25,7 @@ class RawNodeWrapper {
         if (header instanceof HTMLInputElement) {
             header.disabled = false;
             header.focus();
+            header.setSelectionRange(0, 0);
         }
     }
 
