@@ -53,6 +53,9 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
 
     z-index: 1;
 
+    /* TODO: Pull this from settings, add custom overrides for the extension */
+    font-size: 13.5;
+
     &.active {
         outline: 1px solid rgba(179, 116, 87, 0.4);
     }
@@ -138,7 +141,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
 
 .node-header {
     flex: 0 0 16px;
-    font-size: 14px;
+    font-size: 110%;
     font-weight: bold;
 
     $padding: $std-padding / 2;
@@ -169,7 +172,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     resize: none;
 
     font-family: inherit;
-    font-size: 12px;
+    font-size: 100%;
 
     margin: $std-padding;
     margin-top: 0;
@@ -214,6 +217,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     color: var(--vscode-menu-foreground);
     margin: 3px 0;
     padding: 3px 20px;
+    /* not sure where this font size comes from */
     font-size: 13px;
 
     &:hover {
