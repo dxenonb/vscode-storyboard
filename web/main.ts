@@ -207,6 +207,16 @@ class BoardManager {
         } else if (message.kind === 'UpdateHeader') {
             this.updateNode(message.node, 'header', message.content);
             this.saveNode(message.node);
+        } else if (message.kind === 'SelectSocket') {
+            const { mousePos, isByHead, node } = message;
+            this.cancelAction();
+            this.boardState = {
+                kind: 'draggingWire',
+                source: node,
+                mousePos,
+                isByHead,
+            };
+            this.listenDrag(true);
         } else if (message.kind === 'SelectCanvas') {
             this.cancelAction();
             // TODO: Drag canvas
@@ -238,13 +248,18 @@ class BoardManager {
 
     handleMouseMove(event: MouseEvent) {
         const state = this.boardState;
-        if (state.kind !== 'draggingNode') {
-            return;
+        if (state.kind === 'draggingNode') {
+            const pos = new Vec2d(event.x, event.y);
+            const delta = pos.clone().sub(state.start);
+            state.start = pos;
+            this.moveNode(state.ref, delta);
+        } else if (state.kind === 'draggingWire') {
+            const pos = new Vec2d(event.x, event.y);
+            state.mousePos = pos;
+            // TODO: Pass state to render instead
+            (this.graphRenderer as any).state.floatingWire = state;
+            this.graphRenderer.render();
         }
-        const pos = new Vec2d(event.x, event.y);
-        const delta = pos.clone().sub(state.start);
-        state.start = pos;
-        this.moveNode(state.ref, delta);
     }
 
     cancelAction() {

@@ -121,6 +121,10 @@ function _initNode(rx: BoardMessageReceiver): HTMLElement {
 
     const leftSocket = document.createElement('div');
     leftSocket.className = 'node-socket';
+    leftSocket.addEventListener('mousedown', withNodeRef((node, event) => {
+        const mousePos = new Vec2d(event.x, event.y);
+        return { kind: 'SelectSocket', node, mousePos, isByHead: false };
+    }));
 
     const colorBar = document.createElement('div');
     colorBar.className = 'node-color-bar';
@@ -140,6 +144,10 @@ function _initNode(rx: BoardMessageReceiver): HTMLElement {
 
     const rightSocket = document.createElement('div');
     rightSocket.className = 'node-socket';
+    rightSocket.addEventListener('mousedown', withNodeRef((node, event) => {
+        const mousePos = new Vec2d(event.x, event.y);
+        return { kind: 'SelectSocket', node, mousePos, isByHead: true };
+    }));
 
     root.appendChild(leftSocket);
     root.appendChild(colorBar);
@@ -178,6 +186,9 @@ function _updateNodePosition(el: HTMLElement, x: number, y: number, scale: numbe
 
 function _updateNodeRef(el: HTMLElement, ref: NodeRef) {
     el.setAttribute('data-node-ref', ref);
+    // the graph renderer/canvas code still uses get-by-id... not high priority
+    // to refactor but probably not ideal.
+    el.id = nodeRefId(ref);
 }
 
 function nodeRefFromElement(el: EventTarget | null): string | null {

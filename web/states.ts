@@ -1,6 +1,8 @@
-type BoardState = Idle | DraggingNode | EditingHeader;
+type BoardState = Idle | DraggingWire | DraggingNode | EditingHeader;
 
 type Idle = { kind: 'idle' };
+
+type DraggingWire = { kind: 'draggingWire' } & FloatingWire;
 
 interface DraggingNode {
     kind: 'draggingNode';
@@ -16,7 +18,8 @@ interface EditingHeader {
 type BoardMessageReceiver = { send: (msg: BoardMessage) => void };
 
 type BoardMessage
-    = SelectHeader
+    = SelectSocket
+    | SelectHeader
     | DblClickHeader
     | UpdateHeader
     | UpdateContent
@@ -34,6 +37,9 @@ enum BoardMessageKind {
 }
 
 type _Ne<K> = { kind: K, node: NodeRef };
+
+type SelectSocket = _Ne<'SelectSocket'>
+    & { mousePos: Vec2d, isByHead: boolean };
 
 type SelectHeader = _Ne<'SelectHeader'>
     & { pos: Vec2d };

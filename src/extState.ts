@@ -30,7 +30,7 @@ export default class ExtensionState implements Disposable {
             scriptContextMenu: this.mediaUri(['contextMenu.js']),
             scriptMain: this.mediaUri(['main.js']),
             scriptCanvas: this.mediaUri(['canvas.js']),
-            scriptNode: this.mediaUri(['node.js']),
+            scriptNode: this.mediaUri(['nodeWrapper.js']),
             style: this.mediaUri(['styles', 'board.css']),
         };
 

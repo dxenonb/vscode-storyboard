@@ -64,9 +64,9 @@ class GraphRenderer {
 
         requestAnimationFrame(() => {
             const { ctx, connections, floatingWire, translation, scale } = state;
-            const resolved = connections.map(({ start: [start, output], end: [end, input]}) => {
-                const first = nodeSocketRect(start, output);
-                const second = nodeSocketRect(end, input);
+            const resolved = connections.map(({ start, end }) => {
+                const first = nodeSocketRect(start, true);
+                const second = nodeSocketRect(end, false);
                 if (!first || !second) {
                     return { start: null, end: null };
                 }
@@ -103,7 +103,7 @@ class GraphRenderer {
 
             if (floatingWire !== null) {
                 const { source: [node, socket], isByHead, mousePos } = floatingWire;
-                const rect = nodeSocketRect(node, socket);
+                const rect = nodeSocketRect(node, isByHead);
                 if (rect !== null) {
                     const y = (rect.top + rect.bottom) / 2.0;
                     // if isByHead, then we are dragging from an input, else from an output
@@ -133,15 +133,15 @@ class GraphRenderer {
 
 const nodeRefId = (nodeRef: string) => 'node-ref-' + nodeRef;
 
-const nodeSocketRect = (nodeRef: string, socket: string) => {
+const nodeSocketRect = (nodeRef: string, isRightSocket: boolean) => {
     const id = nodeRefId(nodeRef);
     const e = document.getElementById(id);
     if (!e) {
         return null;
     }
-    const sElement = e.querySelector(
-        `.node-io-item[data-socket="${socket}"] > .node-socket`
-    );
+    const sElement = isRightSocket
+        ? e.querySelector('.node-socket:last-child')
+        : e.querySelector('.node-socket:first-child');
     return sElement && sElement.getBoundingClientRect();
 };
 
