@@ -28,18 +28,16 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Development is still underway.
-
 Major missing features:
 
  * Connecting nodes
  * Dragging/panning/scaling the view (easy in theory, always a pain; I've done it twice before, so low priority)
  * Comments/grouping
  * Multiple editors/split views of the same graph
+
+## Release Notes
+
+Development is still underway.
 
 ### 1.0.0
 
