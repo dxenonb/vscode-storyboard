@@ -32,8 +32,7 @@ class GraphRenderer {
         ctx: CanvasRenderingContext2D,
         wireColor: string,
         gridColor: string,
-        handleMouseDown: (arg0: [number, number]) => void,
-        handleScroll: (arg0: number) => void,
+        eventTx: BoardMessageReceiver,
     ) {
         this.options = {
             wireColor,
@@ -49,12 +48,11 @@ class GraphRenderer {
         const canvas = ctx.canvas;
         window.addEventListener('resize', () => this.fitCanvasToWindow());
 
-        canvas.addEventListener('mousedown', (e) => {
-            handleMouseDown([e.clientX, e.clientY]);
-        });
-
-        window.addEventListener('wheel', (e) => {
-            handleScroll(e.deltaY);
+        canvas.addEventListener('mouseup', (e) => {
+            eventTx.send({
+                kind: 'MouseUpCanvas',
+                mousePos: new Vec2d(e.clientX, e.clientY),
+            });
         });
 
         this.state = state;
@@ -68,6 +66,11 @@ class GraphRenderer {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
+        this.render();
+    }
+
+    updateFloatingWire(wire: FloatingWire | null) {
+        this.state.floatingWire = wire;
         this.render();
     }
 

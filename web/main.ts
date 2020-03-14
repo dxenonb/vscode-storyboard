@@ -64,6 +64,7 @@ class BoardManager {
         this.api = api;
         this.nodeHost = nodeHost;
         this.canvasHost = canvasHost;
+        this.eventRx = { send: this.receiveMessage.bind(this) };
 
         const ctx = canvasHost.getContext('2d');
         if (ctx === null) {
@@ -82,14 +83,12 @@ class BoardManager {
             ctx,
             wireColor,
             gridColor,
-            (pos) => this.handleMouseDown(pos),
-            (amt) => this.handleScroll(amt),
+            this.eventRx,
         );
 
         this.contextMenu = new ContextMenu();
 
         this.renderedNodes = new Map();
-        this.eventRx = { send: this.receiveMessage.bind(this) };
 
         this.nodeRefManager = new IdAllocator();
 
@@ -238,6 +237,11 @@ class BoardManager {
             }
             this.cancelAction();
             this.saveNode(message.node);
+        } else if (message.kind === 'MouseUpCanvas') {
+            if (this.boardState.kind !== 'draggingWire') {
+                return;
+            }
+            this.cancelAction();
         }
     }
 
@@ -247,15 +251,6 @@ class BoardManager {
             return;
         }
         window.addEventListener('mousemove', this.handleMouseMove);
-    }
-
-    // TODO: Change the type to Vec2d
-    handleMouseDown(arg: [number, number]) {
-        // TODO
-    }
-
-    handleScroll(amount: number) {
-        // TODO
     }
 
     handleMouseMove(event: MouseEvent) {
@@ -268,9 +263,7 @@ class BoardManager {
         } else if (state.kind === 'draggingWire') {
             const pos = new Vec2d(event.x, event.y);
             state.mousePos = pos;
-            // TODO: Pass state to render instead
-            (this.graphRenderer as any).state.floatingWire = state;
-            this.graphRenderer.render();
+            this.graphRenderer.updateFloatingWire(state);
         }
     }
 
@@ -283,6 +276,7 @@ class BoardManager {
         }
         this.contextMenu.deactivate();
         this.listenDrag(false);
+        this.graphRenderer.updateFloatingWire(null);
     }
 
     // TODO: Better encapsulate things so that this always gets called

@@ -24,6 +24,8 @@ type BoardMessage
     | UpdateHeader
     | UpdateContent
     | SelectCanvas
+    | MouseUpCanvas
+    | MouseUpSocket
     | MouseUpHeader;
 
 enum BoardMessageKind {
@@ -53,5 +55,9 @@ type UpdateContent = _Ne<'UpdateContent'>
     & { content: string };
 
 type SelectCanvas = { kind: 'SelectCanvas' };
+
+type MouseUpCanvas = { kind: 'MouseUpCanvas', mousePos: Vec2d };
+
+type MouseUpSocket = _Ne<'MouseUpSocket'>;
 
 type MouseUpHeader = _Ne<'MouseUpHeader'>;
