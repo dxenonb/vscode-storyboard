@@ -71,7 +71,6 @@ class ContextMenu {
     }
 
     public deactivate() {
-        console.log('deactivating context menu');
         this.resolve(null);
     }
 
