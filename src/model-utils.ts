@@ -11,7 +11,7 @@ export function parseBoardJson(text: string): BoardGraph<Vec2d> | null {
         return null;
     }
 
-    if (!content || !content.nodes) {
+    if (!content || !content.nodes || !content.edges) {
         return null;
     }
 
@@ -24,7 +24,7 @@ export function parseBoardJson(text: string): BoardGraph<Vec2d> | null {
     );
 
     // TODO: update this for Map type... it's late
-    
+
     // const nodes = content.nodes;
     // for (const ref of Object.keys(nodes)) {
     //     const node = nodes[ref];
