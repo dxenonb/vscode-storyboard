@@ -22,4 +22,5 @@ declare global {
 
     type BoardGraph = Backend.BoardGraph<Vec2d>;
     type BoardNode = Backend.BoardNode<Vec2d>;
+    type BoardEdge = Backend.BoardEdge;
 }

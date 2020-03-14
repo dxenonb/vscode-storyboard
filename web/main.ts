@@ -242,6 +242,29 @@ class BoardManager {
                 return;
             }
             this.cancelAction();
+        } else if (message.kind === 'MouseUpSocket') {
+            if (this.boardState.kind !== 'draggingWire') {
+                return;
+            }
+            const { source, isByHead } = this.boardState;
+            const fromSocket = isByHead ? 'right' : 'left';
+            const target = message.node;
+            const toSocket = message.socket;
+            this.cancelAction();
+            if (toSocket === fromSocket || source === target) {
+                return;
+            }
+            let start = source;
+            let end = target;
+            if (!isByHead) {
+                const t = end;
+                end = start;
+                start = t;
+            }
+            const edge = { start, end };
+            this.graph.edges.push(edge);
+            this.saveEdge(edge);
+            console.log('(edge, message):', edge, message);
         }
     }
 
@@ -285,6 +308,15 @@ class BoardManager {
         this.postMessage({
             command: 'UpdateGraph',
             nodes: [node],
+            edges: [],
+        });
+    }
+
+    saveEdge(edge: BoardEdge) {
+        this.postMessage({
+            command: 'UpdateGraph',
+            nodes: [],
+            edges: [edge],
         });
     }
 

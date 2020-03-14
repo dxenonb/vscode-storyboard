@@ -14,7 +14,7 @@ export interface EditorStateUnsaved {
 
 export interface BoardGraph<V extends Vec2d> {
     nodes: Map<NodeRef, BoardNode<V>>;
-    edges: Array<{ start: NodeRef, end: NodeRef }>;
+    edges: Array<BoardEdge>;
 }
 
 export interface BoardNode<V extends Vec2d> {
@@ -25,6 +25,11 @@ export interface BoardNode<V extends Vec2d> {
 
     header: string;
     content: string;
+}
+
+export interface BoardEdge {
+    start: NodeRef;
+    end: NodeRef;
 }
 
 export type Vec2d = { x: number, y: number };

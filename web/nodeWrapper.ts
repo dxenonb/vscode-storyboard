@@ -126,6 +126,9 @@ function _initNode(rx: BoardMessageReceiver): HTMLElement {
         const mousePos = new Vec2d(event.x, event.y);
         return { kind: 'SelectSocket', node, mousePos, isByHead: false };
     }));
+    leftSocket.addEventListener('mouseup', withNodeRef((node) => {
+        return { kind: 'MouseUpSocket', node, socket: 'left' };
+    }));
 
     const colorBar = document.createElement('div');
     colorBar.className = 'node-color-bar';
@@ -148,6 +151,9 @@ function _initNode(rx: BoardMessageReceiver): HTMLElement {
     rightSocket.addEventListener('mousedown', withNodeRef((node, event) => {
         const mousePos = new Vec2d(event.x, event.y);
         return { kind: 'SelectSocket', node, mousePos, isByHead: true };
+    }));
+    rightSocket.addEventListener('mouseup', withNodeRef((node) => {
+        return { kind: 'MouseUpSocket', node, socket: 'right' };
     }));
 
     root.appendChild(leftSocket);

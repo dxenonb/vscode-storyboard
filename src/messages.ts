@@ -1,4 +1,4 @@
-import { BoardNode, Vec2d } from "./model-types";
+import { BoardNode, Vec2d, BoardEdge } from "./model-types";
 
 export type SeqGraphMessage
     = UpdateGraph
@@ -8,6 +8,7 @@ export type SeqGraphMessage
 export interface UpdateGraph {
     command: 'UpdateGraph';
     nodes: BoardNode<Vec2d>[];
+    edges: BoardEdge[];
 }
 
 export interface UpdateFilePath {

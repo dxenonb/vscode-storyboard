@@ -58,6 +58,7 @@ type SelectCanvas = { kind: 'SelectCanvas' };
 
 type MouseUpCanvas = { kind: 'MouseUpCanvas', mousePos: Vec2d };
 
-type MouseUpSocket = _Ne<'MouseUpSocket'>;
+type MouseUpSocket = _Ne<'MouseUpSocket'>
+    & { socket: 'left' | 'right' };
 
 type MouseUpHeader = _Ne<'MouseUpHeader'>;
