@@ -1,14 +1,9 @@
 interface GraphCanvasState {
     ctx: CanvasRenderingContext2D;
-    connections: Array<Connection>;
+    connections: Array<BoardEdge>;
     floatingWire: FloatingWire | null;
     translation: { x: number, y: number };
     scale: number;
-}
-
-interface Connection {
-    start: NodeRef;
-    end: NodeRef;
 }
 
 interface FloatingWire {
@@ -39,7 +34,7 @@ class GraphRenderer {
             gridColor,
         };
 
-        const connections: Connection[] = [];
+        const connections: BoardEdge[] = [];
         const floatingWire = null;
         const translation = { x: 0, y: 0 };
         const scale = 1.0;
@@ -71,6 +66,13 @@ class GraphRenderer {
 
     updateFloatingWire(wire: FloatingWire | null) {
         this.state.floatingWire = wire;
+        this.render();
+    }
+
+    updateConnections(connections: BoardEdge[]) {
+        // hm the reference probably never changes making this assignment
+        // pointless... this is really just a call to render 80% of the time.
+        this.state.connections = connections;
         this.render();
     }
 

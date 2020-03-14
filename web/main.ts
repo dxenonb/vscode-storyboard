@@ -264,7 +264,7 @@ class BoardManager {
             const edge = { start, end };
             this.graph.edges.push(edge);
             this.saveEdge(edge);
-            console.log('(edge, message):', edge, message);
+            this.graphRenderer.updateConnections(this.graph.edges);
         }
     }
 
