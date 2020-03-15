@@ -287,6 +287,7 @@ class BoardManager {
             const delta = pos.clone().sub(state.start);
             state.start = pos;
             this.moveNode(state.ref, delta);
+            this.graphRenderer.render();
         } else if (state.kind === 'draggingWire') {
             const pos = new Vec2d(event.x, event.y);
             state.mousePos = pos;
@@ -348,10 +349,14 @@ class BoardManager {
             }
             rendered.attach(node);
         }
+        for (const edge of message.edges) {
+            this.graph.edges.set(edgeKey(edge), edge);
+        }
         this.nodeRefManager.analyze(
             this.graph.nodes.values(),
             (node: BoardNode) => node.ref,
         );
+        this.graphRenderer.updateConnections(this.graph.edges);
     }
 
     handleMessageUpdateFilePath(message: UpdateFilePath) {

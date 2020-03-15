@@ -72,7 +72,7 @@ export class EditorView {
         this.sendWebview({
             command: 'UpdateGraph',
             nodes: Array.from(graph.nodes.values()),
-            edges: [],
+            edges: Array.from(graph.edges.values()),
         });
         this.sendWebview({
             command: 'UpdateFilePath',
@@ -117,7 +117,7 @@ export class EditorView {
             this.sendWebview({
                 command: 'UpdateGraph',
                 nodes: Array.from(this.graph.nodes.values()),
-                edges: [],
+                edges: Array.from(this.graph.edges.values()),
             });
         }
         this.wasVisible = visible;
