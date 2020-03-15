@@ -79,14 +79,9 @@ export default class ExtensionState implements Disposable {
             return null;
         }
         let document;
-        try {
-            document = parseBoardJson(content);
-            if (!document) {
-                return null;
-            }
-        } catch (e) {
-            console.log('got exception while opening:', e);
-            vscode.window.showErrorMessage(LABELS.invalidFormat);
+        document = parseBoardJson(content);
+        if (typeof document === 'string') {
+            vscode.window.showErrorMessage(`${LABELS.invalidFormat}\n${document}`);
             return null;
         }
         const board = await this.createBoardEditor(panel);

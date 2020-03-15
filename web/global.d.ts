@@ -19,6 +19,7 @@ declare global {
     type IncomingBoardNode = Backend.BoardNode<Backend.Vec2d>;
 
     type NodeRef = Backend.NodeRef;
+    type EdgeKey = Backend.EdgeKey;
 
     type BoardGraph = Backend.BoardGraph<Vec2d>;
     type BoardNode = Backend.BoardNode<Vec2d>;

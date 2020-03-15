@@ -1,4 +1,5 @@
 export type NodeRef = string;
+export type EdgeKey = string;
 
 export type PersistentEditorState = EditorStateSaved | EditorStateUnsaved;
 
@@ -14,7 +15,7 @@ export interface EditorStateUnsaved {
 
 export interface BoardGraph<V extends Vec2d> {
     nodes: Map<NodeRef, BoardNode<V>>;
-    edges: Array<BoardEdge>;
+    edges: Map<EdgeKey, BoardEdge>;
 }
 
 export interface BoardNode<V extends Vec2d> {

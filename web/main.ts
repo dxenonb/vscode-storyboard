@@ -2,6 +2,10 @@ const MAIN_CONTEXT_MENU_OPTIONS = [
     { action: 'createNode', text: 'New Node', aliases: null },
 ];
 
+function edgeKey(edge: BoardEdge): EdgeKey {
+    return `${edge.start}-${edge.end}`;
+}
+
 class IdAllocator {
     private nextId: number;
 
@@ -94,7 +98,7 @@ class BoardManager {
 
         this.graph = {
             nodes: new Map(),
-            edges: [],
+            edges: new Map(),
         };
 
         this._idleState = { kind: 'idle' };
@@ -262,7 +266,7 @@ class BoardManager {
                 start = t;
             }
             const edge = { start, end };
-            this.graph.edges.push(edge);
+            this.graph.edges.set(edgeKey(edge), edge);
             this.saveEdge(edge);
             this.graphRenderer.updateConnections(this.graph.edges);
         }

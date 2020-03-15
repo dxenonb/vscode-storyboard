@@ -1,46 +1,89 @@
 // This module is separate from the types so the frontend can depend on the
 // import-less shared.d.ts (which only pulls in the types)
 
-import { BoardGraph, Vec2d, BoardNode, NodeRef } from "./model-types";
+import { BoardGraph, Vec2d, BoardNode, NodeRef, BoardEdge } from "./model-types";
 
-export function parseBoardJson(text: string): BoardGraph<Vec2d> | null {
+export function edgeKey(edge: BoardEdge) {
+    return `${edge.start}-${edge.end}`;
+}
+
+export function parseBoardJson(text: string): BoardGraph<Vec2d> | string {
     let content: any;
     try {
         content = JSON.parse(text);
     } catch {
-        return null;
+        return 'invalid JSON';
     }
 
-    if (!content || !content.nodes || !content.edges) {
-        return null;
+    if (!content) {
+        return 'JSON is null';
+    } else if (!content.nodes) {
+        return 'nodes are missing';
+    } else if (!content.edges) {
+        return 'edges are missing';
     }
 
-    content.nodes = content.nodes.reduce(
-        (nodes: Map<NodeRef, BoardNode<Vec2d>>, node: BoardNode<Vec2d>) => {
-            nodes.set(node.ref, node);
-            return nodes;
-        },
-        new Map(),
-    );
+    const board: BoardGraph<Vec2d> = {
+        nodes: new Map(),
+        edges: new Map(),
+    };
 
-    // TODO: update this for Map type... it's late
+    try {
+        const nodes = content.nodes;
+        for (const node of nodes) {
+            const ref = node.ref;
+            if (!isNode(node)) {
+                return `JSON contained invalid node with ID ${ref}`;
+            }
+            board.nodes.set(ref, node);
+        }
 
-    // const nodes = content.nodes;
-    // for (const ref of Object.keys(nodes)) {
-    //     const node = nodes[ref];
-    //     if (!isNode(node)) {
-    //         return null;
-    //     }
-    // }
+        const edges = content.edges;
+        for (const edge of edges) {
+            if (!isEdge(edge)) {
+                return `JSON contained invalid edge: ${JSON.stringify(edge)}`;
+            }
+            const key = edgeKey(edge);
+            board.edges.set(key, edge);
+        }
+    } catch (e) {
+        return `encountered an exception while parsing JSON: ${e}`;
+    }
 
-    return content as BoardGraph<Vec2d>;
+    return board;
+}
+
+export function serializeJson(board: BoardGraph<Vec2d>): string {
+    return JSON.stringify(board, jsonReplacer, 2);
+}
+
+function jsonReplacer(key: string, value: any) {
+    if (key === 'nodes' && value instanceof Map) {
+        return Array.from(value.values());
+    }
+    if (key === 'edges' && value instanceof Map) {
+        return Array.from(value.values());
+    }
+    return value;
 }
 
 export function isNode(node: any): node is BoardNode<Vec2d> {
-    return true
+    return node
         && node.ref
-        && node.pos && node.pos.x && node.pos.y
-        && (node.color || node.color === null)
-        && ((node.size && node.size.x && node.size.y) || node.size === null)
+        && isVec2d(node.pos)
+        && (typeof node.color === 'string' || node.color === null)
+        && (isVec2d(node.size) || node.size === null)
         && typeof node.header === 'string' && typeof node.content === 'string';
+}
+
+export function isEdge(edge: any): edge is BoardEdge {
+    return edge
+        && typeof edge.start === 'string'
+        && typeof edge.end === 'string';
+}
+
+export function isVec2d(vec: any): vec is Vec2d {
+    return vec
+        && typeof vec.x === 'number'
+        && typeof vec.y === 'number';
 }

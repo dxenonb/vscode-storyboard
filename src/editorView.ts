@@ -4,6 +4,7 @@ import { BoardGraph, Vec2d } from "./model-types";
 import { SeqGraphMessage, UpdateTitle, UpdateGraph } from "./messages";
 import { promises as fs } from "fs";
 import LABELS from "./labels";
+import { edgeKey, serializeJson } from "./model-utils";
 
 export type EditorViewResources = { [key: string]: Uri };
 
@@ -37,7 +38,7 @@ export class EditorView {
     ) {
         this.panel = panel;
 
-        this.graph = { nodes: new Map(), edges: [] };
+        this.graph = { nodes: new Map(), edges: new Map() };
         this.autosaveTimeout = null;
         this.maxAutosaveTimeout = null;
         this.fsPath = null;
@@ -99,7 +100,7 @@ export class EditorView {
             this.graph.nodes.set(node.ref, node);
         }
         for (const edge of message.edges) {
-            this.graph.edges.push(edge);
+            this.graph.edges.set(edgeKey(edge), edge);
         }
         this.recordChange();
     }
@@ -164,7 +165,7 @@ export class EditorView {
         }
 
         if (this.fsPath) {
-            const data = JSON.stringify(this.graph, jsonReplacer);
+            const data = serializeJson(this.graph);
             fs.writeFile(this.fsPath, data, { encoding: 'utf-8' });
             return;
         }
@@ -194,13 +195,6 @@ export class EditorView {
             this.save();
         }
     }
-}
-
-function jsonReplacer(key: string, value: any) {
-    if (key === 'nodes' && value instanceof Map) {
-        return Array.from(value.values());
-    }
-    return value;
 }
 
 // TODO: Don't use unsafe-inline for styles

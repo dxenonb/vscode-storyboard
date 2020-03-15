@@ -1,6 +1,6 @@
 interface GraphCanvasState {
     ctx: CanvasRenderingContext2D;
-    connections: Array<BoardEdge>;
+    connections: Set<BoardEdge>;
     floatingWire: FloatingWire | null;
     translation: { x: number, y: number };
     scale: number;
@@ -34,7 +34,7 @@ class GraphRenderer {
             gridColor,
         };
 
-        const connections: BoardEdge[] = [];
+        const connections: Set<BoardEdge> = new Set();
         const floatingWire = null;
         const translation = { x: 0, y: 0 };
         const scale = 1.0;
@@ -69,10 +69,10 @@ class GraphRenderer {
         this.render();
     }
 
-    updateConnections(connections: BoardEdge[]) {
-        // hm the reference probably never changes making this assignment
-        // pointless... this is really just a call to render 80% of the time.
-        this.state.connections = connections;
+    updateConnections(connections: Map<EdgeKey, BoardEdge>) {
+        for (const [key, edge] of connections.entries()) {
+            this.state.connections.add(edge);
+        }
         this.render();
     }
 
@@ -82,17 +82,19 @@ class GraphRenderer {
 
         requestAnimationFrame(() => {
             const { ctx, connections, floatingWire, translation, scale } = state;
-            const resolved = connections.map(({ start, end }) => {
+            const resolved = [];
+            for (const [_, { start, end }] of connections.entries()) {
                 const first = nodeSocketRect(start, true);
                 const second = nodeSocketRect(end, false);
                 if (!first || !second) {
-                    return { start: null, end: null };
+                    resolved.push({ start: null, end: null });
+                } else {
+                    resolved.push({
+                        start: { x: first.right, y: (first.top + first.bottom) / 2.0 },
+                        end: { x: second.left, y: (second.top + second.bottom) / 2.0 },
+                    });
                 }
-                return {
-                    start: { x: first.right, y: (first.top + first.bottom) / 2.0 },
-                    end: { x: second.left, y: (second.top + second.bottom) / 2.0 },
-                };
-            });
+            };
 
             ctx.save();
 
