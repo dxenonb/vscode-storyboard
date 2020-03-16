@@ -56,8 +56,8 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     /* TODO: Pull this from settings, add custom overrides for the extension */
     font-size: 13.5;
 
-    &.active {
-        outline: 1px solid rgba(179, 116, 87, 0.4);
+    &.selected {
+        box-shadow: 0 0 6px var(--vscode-gitDecoration-conflictingResourceForeground);
     }
 
     transition: background-color ease-in-out 0.1s;

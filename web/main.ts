@@ -101,7 +101,7 @@ class BoardManager {
             edges: new Map(),
         };
 
-        this._idleState = { kind: 'idle' };
+        this._idleState = { kind: 'idle', selected: [] };
         this.boardState = this._idleState;
 
         this.handleMouseMove = this.handleMouseMove.bind(this);
@@ -211,9 +211,11 @@ class BoardManager {
             }
             this.cancelAction();
             this.listenDrag(true);
+            const ref = message.node;
+            this.setSelected(ref);
             this.boardState = {
                 kind: 'draggingNode',
-                ref: message.node,
+                ref,
                 start: message.pos,
             };
         } else if (message.kind === 'UpdateContent') {
@@ -236,7 +238,8 @@ class BoardManager {
             this.cancelAction();
             // TODO: Drag canvas
         } else if (message.kind === 'MouseUpHeader') {
-            if (this.boardState.kind !== 'draggingNode') {
+            const state = this.boardState;
+            if (state.kind !== 'draggingNode') {
                 return;
             }
             this.cancelAction();
@@ -305,6 +308,16 @@ class BoardManager {
         this.contextMenu.deactivate();
         this.listenDrag(false);
         this.graphRenderer.updateFloatingWire(null);
+    }
+
+    setSelected(ref: NodeRef | null) {
+        this.renderedNodes.forEach((node) => {
+            if (node.ref === ref) {
+                node.select();
+            } else {
+                node.deselect();
+            }
+        });
     }
 
     // TODO: Better encapsulate things so that this always gets called
