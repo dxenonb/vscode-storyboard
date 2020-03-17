@@ -1,6 +1,12 @@
-type BoardState = Idle | DraggingWire | DraggingNode | EditingHeader;
+// States
 
-type Idle = { kind: 'idle' };
+type BoardState
+    = Idle
+    | DraggingWire
+    | DraggingNode
+    | EditingHeader;
+
+type Idle = { kind: 'idle', selected: NodeRef[] };
 
 type DraggingWire = { kind: 'draggingWire' } & FloatingWire;
 
@@ -14,6 +20,8 @@ interface EditingHeader {
     kind: 'editingHeader';
     ref: NodeRef;
 }
+
+// Messages
 
 type BoardMessageReceiver = { send: (msg: BoardMessage) => void };
 

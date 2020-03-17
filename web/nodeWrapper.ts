@@ -20,6 +20,18 @@ class RawNodeWrapper {
         this.position = new Vec2d(0, 0);
     }
 
+    get ref() {
+        return this.node.getAttribute('data-node-ref');
+    }
+
+    select() {
+        this.node.classList.add('selected');
+    }
+
+    deselect() {
+        this.node.classList.remove('selected');
+    }
+
     unlockHeader() {
         const header = this.node.querySelector('.node-header');
         if (header instanceof HTMLInputElement) {
