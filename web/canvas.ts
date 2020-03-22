@@ -2,8 +2,8 @@ interface GraphCanvasState {
     ctx: CanvasRenderingContext2D;
     connections: Set<BoardEdge>;
     floatingWire: FloatingWire | null;
-    translation: { x: number, y: number };
-    scale: number;
+    center: Vec2d;
+    zoom: number;
 }
 
 interface FloatingWire {
@@ -36,9 +36,15 @@ class GraphRenderer {
 
         const connections: Set<BoardEdge> = new Set();
         const floatingWire = null;
-        const translation = { x: 0, y: 0 };
-        const scale = 1.0;
-        const state: GraphCanvasState = { ctx, connections, floatingWire, translation, scale };
+        const center = new Vec2d(0, 0);
+        const zoom = 1.0;
+        const state: GraphCanvasState = {
+            ctx,
+            connections,
+            floatingWire,
+            center,
+            zoom,
+        };
 
         const canvas = ctx.canvas;
         window.addEventListener('resize', () => this.fitCanvasToWindow());
@@ -53,6 +59,26 @@ class GraphRenderer {
         this.state = state;
 
         this.fitCanvasToWindow();
+    }
+
+    setCamera(
+        center: Vec2d,
+        zoom: number,
+    ) {
+        const state = this.state;
+        state.center = center;
+        state.zoom = zoom;
+    }
+
+    private computeExtents() {
+        const { center, zoom, ctx } = this.state;
+        const canvas = new Vec2d(
+            ctx.canvas.clientWidth,
+            ctx.canvas.clientHeight,
+        ).scale(1 / zoom);
+        const topLeft = center.clone().sub(canvas);
+        const bottomRight = center.clone().add(canvas);
+        return { topLeft, bottomRight };
     }
 
     fitCanvasToWindow() {
@@ -81,7 +107,7 @@ class GraphRenderer {
         const state = this.state;
 
         requestAnimationFrame(() => {
-            const { ctx, connections, floatingWire, translation, scale } = state;
+            const { ctx, connections, floatingWire, zoom } = state;
             const resolved = [];
             for (const [_, { start, end }] of connections.entries()) {
                 const first = nodeSocketRect(start, true);
@@ -100,9 +126,10 @@ class GraphRenderer {
 
             // TODO: everything will need to handle DPI and transformations
             ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-            drawGrid(this.state, this.options);
+            drawGrid(this.state, this.options, this.computeExtents());
 
-            const flair = 100 * scale;
+            // TODO: Specify curves in world space
+            const flair = 100 * zoom;
 
             for (const { start, end } of resolved) {
                 if (start === null || end === null) {
@@ -165,7 +192,11 @@ const nodeSocketRect = (nodeRef: string, isRightSocket: boolean) => {
     return sElement && sElement.getBoundingClientRect();
 };
 
-const drawGrid = (state: GraphCanvasState, options: GraphCanvasOptions) => {
+const drawGrid = (
+    state: GraphCanvasState,
+    options: GraphCanvasOptions,
+    { topLeft, bottomRight }: { topLeft: Vec2d, bottomRight: Vec2d }
+) => {
     const strokeStyle = options.gridColor;
     // width of major and minor lines
     const majorWidth = 1.0;
@@ -175,18 +206,20 @@ const drawGrid = (state: GraphCanvasState, options: GraphCanvasOptions) => {
     // the nth grid line will be a major line
     const majorFrequency = 4;
 
-    const { ctx, translation, scale } = state;
+    const { ctx, center, zoom } = state;
 
     ctx.save();
 
     ctx.strokeStyle = strokeStyle;
-    ctx.scale(scale, scale);
-    ctx.translate(-translation.x, -translation.y);
+    // center the origin
+    ctx.translate(ctx.canvas.clientWidth / 2, ctx.canvas.clientHeight / 2);
+    ctx.translate(-center.x, -center.y);
+    ctx.scale(zoom, zoom);
 
-    const leftEdge = translation.x;
-    const topEdge = translation.y;
-    const rightEdge = translation.x + window.innerWidth / scale;
-    const bottomEdge = translation.y + window.innerHeight / scale;
+    const leftEdge = topLeft.x;
+    const topEdge = topLeft.y;
+    const rightEdge = bottomRight.x;
+    const bottomEdge = bottomRight.y;
 
     drawGridLines(
         ctx,
