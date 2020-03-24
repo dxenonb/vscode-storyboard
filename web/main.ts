@@ -6,6 +6,16 @@ function edgeKey(edge: BoardEdge): EdgeKey {
     return `${edge.start}-${edge.end}`;
 }
 
+class Camera {
+    public zoom: number;
+    public center: Vec2d;
+
+    constructor() {
+        this.zoom = 1;
+        this.center = new Vec2d(0, 0);
+    }
+}
+
 class IdAllocator {
     private nextId: number;
 
@@ -45,6 +55,7 @@ class BoardManager {
     private nodeRefManager: IdAllocator;
 
     private graph: BoardGraph;
+    private camera: Camera;
 
     private boardState: BoardState;
     private _idleState: BoardState;
@@ -100,6 +111,7 @@ class BoardManager {
             nodes: new Map(),
             edges: new Map(),
         };
+        this.camera = new Camera();
 
         this._idleState = { kind: 'idle', selected: [] };
         this.boardState = this._idleState;
@@ -131,6 +143,18 @@ class BoardManager {
                     this.createNode(pos);
                 }
             });
+        });
+        window.addEventListener('wheel', (event) => {
+            const dir = event.deltaY < 0 ? 1 : -1;
+            const amt = 1.4;
+
+            let zoom = this.camera.zoom;
+            zoom *= dir > 0 ? amt : 1 / amt;
+            zoom = Math.min(Math.max(zoom, 1 / 4), 10);
+            this.camera.zoom = zoom;
+
+            this.graphRenderer.setCamera(new Vec2d(0, 0), this.camera.zoom);
+            this.graphRenderer.render();
         });
     }
 

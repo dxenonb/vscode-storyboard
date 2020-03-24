@@ -75,7 +75,7 @@ class GraphRenderer {
         const canvas = new Vec2d(
             ctx.canvas.clientWidth,
             ctx.canvas.clientHeight,
-        ).scale(1 / zoom);
+        ).scale(1 / (2 * zoom));
         const topLeft = center.clone().sub(canvas);
         const bottomRight = center.clone().add(canvas);
         return { topLeft, bottomRight };
@@ -197,16 +197,16 @@ const drawGrid = (
     options: GraphCanvasOptions,
     { topLeft, bottomRight }: { topLeft: Vec2d, bottomRight: Vec2d }
 ) => {
+    const { ctx, center, zoom } = state;
+
     const strokeStyle = options.gridColor;
     // width of major and minor lines
-    const majorWidth = 1.0;
-    const minorWidth = 0.5;
+    const majorWidth = Math.max(1.0 / zoom, 0.2);
+    const minorWidth = Math.max(0.5 / zoom, 0.1);
     // grid spacing in pixels between minor increments
     const gridSpacing = 25;
     // the nth grid line will be a major line
     const majorFrequency = 4;
-
-    const { ctx, center, zoom } = state;
 
     ctx.save();
 
@@ -228,7 +228,7 @@ const drawGrid = (
         { start: topEdge, end: bottomEdge },
         gridSpacing,
         majorFrequency,
-        { major: majorWidth, minor: minorWidth }
+        { major: majorWidth / zoom, minor: minorWidth / zoom }
     );
 
     drawGridLines(
