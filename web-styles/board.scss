@@ -1,3 +1,5 @@
+@use "sass:math";
+
 * {
     margin: 0;
     padding: 0;
@@ -144,7 +146,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
     font-size: 110%;
     font-weight: bold;
 
-    $padding: $std-padding / 2;
+    $padding: math.div($std-padding, 2);
     margin: $padding;
     padding: $padding;
 
@@ -176,7 +178,7 @@ $default-color-bar: rgba(0, 0, 0, 0.5);
 
     margin: $std-padding;
     margin-top: 0;
-    padding: $std-padding / 3;
+    padding: math.div($std-padding, 3);
 
     background: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
