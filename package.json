@@ -17,14 +17,22 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"customEditors": [
+			{
+				"viewType": "sequenceGraph.storyBoard",
+				"displayName": "Story Board",
+				"selector": [
+					{
+						"filenamePattern": "*.seqgraph.json"
+					}
+				],
+				"priority": "default"
+			}
+		],
 		"commands": [
 			{
 				"command": "extension.sequenceGraph.createBoard",
 				"title": "Create SequenceGraph Board"
-			},
-			{
-				"command": "extension.sequenceGraph.openBoard",
-				"title": "Open SequenceGraph Board"
 			}
 		]
 	},
