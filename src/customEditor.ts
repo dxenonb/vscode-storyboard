@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { Vec2d } from './model-types';
 import { BoardEdge, BoardNode, StoryBoard } from './storyBoard';
 import StoryBoardEditor from './storyBoardEditor';
+import * as path from 'path';
 
 export default class StoryBoardEditorProvider implements vscode.CustomTextEditorProvider {
 
@@ -24,8 +25,14 @@ export default class StoryBoardEditorProvider implements vscode.CustomTextEditor
         webviewPanel: vscode.WebviewPanel,
         _token: vscode.CancellationToken
     ): Promise<void> {
+        const entryPoint = this.mediaUri(['main.js']);
+
         const storage = new StorageProvider(document);
-        const editor = new StoryBoardEditor(webviewPanel, storage);
+        const editor = new StoryBoardEditor(
+            webviewPanel,
+            storage,
+            entryPoint,
+        );
 
 		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
 			if (e.document.uri.toString() === document.uri.toString()) {
@@ -55,7 +62,13 @@ export default class StoryBoardEditorProvider implements vscode.CustomTextEditor
 			JSON.stringify(json, null, 2));
 
 		return vscode.workspace.applyEdit(edit);
-	}
+    }
+
+    private mediaUri(mediaPath: string[]) {
+        const extensionPath = this.context.extensionPath;
+        const paths = [extensionPath, 'media', ...mediaPath];
+        return vscode.Uri.file(path.join.apply(path, paths));
+    }
 
     dispose() {
         for (const item of this.disposables) {

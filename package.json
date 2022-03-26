@@ -40,9 +40,9 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "npm run compile-src && npm run compile-web && npm run compile-web-styles",
 		"compile-src": "tsc -p ./src -d",
-		"compile-web": "tsc -p ./web",
+		"compile-web": "tsc -p ./storyboard",
 		"compile-web-styles": "sass ./web-styles/:./media/styles/",
-		"lint": "eslint src web --ext ts",
+		"lint": "eslint src storyboard --ext ts",
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js"
 	},
