@@ -1,0 +1,51 @@
+{
+  "nodes": [
+    {
+      "color": null,
+      "content": "Hey!",
+      "header": "Exposition",
+      "pos": {
+        "x": 276,
+        "y": 321
+      },
+      "ref": "0",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "",
+      "header": "Bob",
+      "pos": {
+        "x": 647,
+        "y": 151
+      },
+      "ref": "1",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "",
+      "header": "Sally",
+      "pos": {
+        "x": 590,
+        "y": 488
+      },
+      "ref": "2",
+      "size": null
+    }
+  ],
+  "edges": [
+    {
+      "end": "1",
+      "start": "0"
+    },
+    {
+      "end": "2",
+      "start": "0"
+    },
+    {
+      "start": "1",
+      "end": "2"
+    }
+  ]
+}

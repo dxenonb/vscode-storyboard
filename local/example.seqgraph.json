@@ -1,0 +1,115 @@
+{
+  "nodes": [
+    {
+      "color": null,
+      "content": "Other stuff happens",
+      "header": "Main plot",
+      "pos": {
+        "x": -149,
+        "y": 244
+      },
+      "ref": "4",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "Other stuff happens",
+      "header": "Side plot",
+      "pos": {
+        "x": -39,
+        "y": -325
+      },
+      "ref": "5",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "Hey",
+      "header": "Exposition Hello World",
+      "pos": {
+        "x": -714,
+        "y": -142
+      },
+      "ref": "6",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "The big event!",
+      "header": "Climax",
+      "pos": {
+        "x": 243,
+        "y": -10
+      },
+      "ref": "7",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "",
+      "header": "Rising action",
+      "pos": {
+        "x": 410,
+        "y": -287
+      },
+      "ref": "8",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "Everyone lives happily ever after.",
+      "header": "Falling action",
+      "pos": {
+        "x": 365,
+        "y": 322
+      },
+      "ref": "9",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "Hey ",
+      "header": "",
+      "pos": {
+        "x": 137,
+        "y": -156
+      },
+      "ref": "11",
+      "size": null
+    }
+  ],
+  "edges": [
+    {
+      "end": "5",
+      "start": "6"
+    },
+    {
+      "end": "4",
+      "start": "6"
+    },
+    {
+      "end": "8",
+      "start": "5"
+    },
+    {
+      "end": "8",
+      "start": "4"
+    },
+    {
+      "end": "7",
+      "start": "8"
+    },
+    {
+      "end": "9",
+      "start": "7"
+    },
+    {
+      "end": "10",
+      "start": "6"
+    },
+    {
+      "end": "5",
+      "start": "10"
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "nodes": [
+    {
+      "color": null,
+      "content": "Other stuff happens",
+      "header": "Main plot",
+      "pos": {
+        "x": 757,
+        "y": 615
+      },
+      "ref": "4",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "Other stuff happens",
+      "header": "Side plot",
+      "pos": {
+        "x": 570,
+        "y": 263
+      },
+      "ref": "5",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "",
+      "header": "Exposition - Update",
+      "pos": {
+        "x": 215,
+        "y": 453
+      },
+      "ref": "6",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "The big event!",
+      "header": "Climax",
+      "pos": {
+        "x": 1124,
+        "y": 349
+      },
+      "ref": "7",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "",
+      "header": "Rising action",
+      "pos": {
+        "x": 933,
+        "y": 42
+      },
+      "ref": "8",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "Everyone lives happily ever after.",
+      "header": "Falling action",
+      "pos": {
+        "x": 1215,
+        "y": 668
+      },
+      "ref": "9",
+      "size": null
+    },
+    {
+      "color": null,
+      "content": "",
+      "header": "",
+      "pos": {
+        "x": 212,
+        "y": 156
+      },
+      "ref": "10",
+      "size": null
+    }
+  ],
+  "edges": [
+    {
+      "end": "5",
+      "start": "6"
+    },
+    {
+      "end": "4",
+      "start": "6"
+    },
+    {
+      "end": "8",
+      "start": "5"
+    },
+    {
+      "end": "8",
+      "start": "4"
+    },
+    {
+      "end": "7",
+      "start": "8"
+    },
+    {
+      "end": "9",
+      "start": "7"
+    },
+    {
+      "end": "10",
+      "start": "6"
+    },
+    {
+      "end": "6",
+      "start": "10"
+    },
+    {
+      "end": "5",
+      "start": "10"
+    }
+  ]
+}
