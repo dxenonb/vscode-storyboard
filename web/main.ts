@@ -8,11 +8,46 @@ function edgeKey(edge: BoardEdge): EdgeKey {
 
 class Camera {
     public zoom: number;
-    public center: Vec2d;
 
-    constructor() {
+    private upperLeft: Vec2d;
+    private _center: Vec2d;
+    private _extents: Vec2d;
+    private halfExtents: Vec2d;
+
+    public get center(): Vec2d {
+        return this._center;
+    }
+
+    public set center(value: Vec2d) {
+        this._center = value;
+        this.upperLeft = value.clone().sub(this.halfExtents);
+    }
+
+    public set extents(extents: Vec2d) {
+        this._extents = extents;
+        this.halfExtents = extents.clone().scale(0.5);
+    }
+
+    constructor(width: number, height: number) {
         this.zoom = 1;
-        this.center = new Vec2d(0, 0);
+        this._center = new Vec2d(0, 0);
+
+        this._extents = new Vec2d(width, height);
+        this.halfExtents = new Vec2d(width / 2, height / 2);
+
+        this.upperLeft = this.center.clone().sub(this.halfExtents);
+    }
+
+    cssNodeScale() {
+        return `scale(${this.zoom})`;
+    }
+
+    /// Get the position of an object in graph space (e.g. a node's position)
+    /// relative to the viewport (origin in the upper left).
+    ///
+    /// Operates directly on the argument.
+    graphToCameraPos(graphPos: Vec2d) {
+        return graphPos.sub(this.center).add(this.halfExtents);
     }
 }
 
@@ -111,7 +146,10 @@ class BoardManager {
             nodes: new Map(),
             edges: new Map(),
         };
-        this.camera = new Camera();
+        this.camera = new Camera(
+            ctx.canvas.clientWidth,
+            ctx.canvas.clientHeight,
+        );
 
         this._idleState = { kind: 'idle', selected: [] };
         this.boardState = this._idleState;
@@ -178,7 +216,11 @@ class BoardManager {
 
         // Render the node
         const rendered = new RawNodeWrapper(this.nodeHost, this.eventRx);
-        rendered.attach(node);
+        rendered.attach(
+            node,
+            this.camera.graphToCameraPos(node.pos.clone()),
+            this.camera.zoom,
+        );
         this.renderedNodes.set(nodeRef, rendered);
 
         return nodeRef;
@@ -192,8 +234,9 @@ class BoardManager {
         if (!node) {
             return;
         }
-        // TODO: Handle camera
-        node.position = modelNode.pos;
+
+        node.position = this.camera.graphToCameraPos(modelNode.pos.clone());
+        node.scale = this.camera.zoom;
         node.render();
     }
 
@@ -384,7 +427,11 @@ class BoardManager {
                 rendered = new RawNodeWrapper(this.nodeHost, this.eventRx);
                 this.renderedNodes.set(node.ref, rendered);
             }
-            rendered.attach(node);
+            rendered.attach(
+                node,
+                this.camera.graphToCameraPos(node.pos.clone()),
+                this.camera.zoom,
+            );
         }
         for (const edge of message.edges) {
             this.graph.edges.set(edgeKey(edge), edge);

@@ -3,6 +3,7 @@ class RawNodeWrapper {
     public header: string;
     public content: string;
     public position: Vec2d;
+    public scale: number;
 
     private host: HTMLElement;
     private rx: BoardMessageReceiver;
@@ -18,6 +19,7 @@ class RawNodeWrapper {
         this.header = '';
         this.content = '';
         this.position = new Vec2d(0, 0);
+        this.scale = 1;
     }
 
     get ref() {
@@ -51,17 +53,18 @@ class RawNodeWrapper {
     render() {
         _updateNodeContent(this.node, this.header, this.content);
         const { x, y } = this.position;
-        _updateNodePosition(this.node, x, y, 1.0);
+        _updateNodePosition(this.node, x, y, this.scale);
     }
 
-    attach(node: BoardNode) {
+    attach(node: BoardNode, pos: Vec2d, scale: number) {
         if (this.attached) {
             throw new Error('Node is already attached!');
         }
 
         this.content = node.content;
         this.header = node.header;
-        this.position = node.pos;
+        this.position = pos;
+        this.scale = scale;
         _updateNodeRef(this.node, node.ref);
 
         this.host.appendChild(this.node);
